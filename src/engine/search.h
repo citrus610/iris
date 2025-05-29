@@ -1,0 +1,32 @@
+#pragma once
+
+#include "order.h"
+#include "table.h"
+#include "timer.h"
+#include "uci.h"
+
+namespace search
+{
+
+class Engine
+{
+private:
+    std::atomic_flag running;
+    std::thread* thread;
+private:
+    timer::Data timer;
+    transposition::Table table;
+public:
+    Engine();
+public:
+    void clear();
+    void set(uci::parse::Setoption uci_setoption);
+    bool search(Board uci_board, uci::parse::Go uci_go);
+    bool stop();
+    bool join();
+public:
+    template <bool PV> i32 pvsearch(Data& data, i32 alpha, i32 beta, i32 depth);
+    template <bool PV> i32 qsearch(Data& data, i32 alpha, i32 beta);
+};
+
+};

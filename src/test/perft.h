@@ -68,22 +68,22 @@ inline void test()
 {
     std::cout << "PERFT TEST" << std::endl;
 
-    for (const auto& data : set) {
-        auto board = Board(data.fen);
+    for (const auto& test : set) {
+        auto board = Board(test.fen);
 
         auto t1 = std::chrono::high_resolution_clock::now();
-        auto count = perft::get<false>(board, data.depth);
+        auto count = perft::get<false>(board, test.depth);
         auto t2 = std::chrono::high_resolution_clock::now();
         auto time = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 
         std::cout << std::endl;
-        std::cout << data.name << std::endl;
-        std::cout << " - depth: " << data.depth << std::endl;
+        std::cout << test.name << std::endl;
+        std::cout << " - depth: " << test.depth << std::endl;
         std::cout << " - count: " << count << std::endl;
         std::cout << " - time: " << time << " ms" << std::endl;
         std::cout << " - nps: " << (count / time) << " kn/s" << std::endl;
         
-        if (count == data.count) {
+        if (count == test.count) {
             std::cout << "passed!" << std::endl;
         }
         else {

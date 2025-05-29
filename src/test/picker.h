@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../chess/chess.h"
+#include "../engine/order.h"
 
-namespace test::quiet
+namespace test::picker
 {
 
 struct Test
@@ -21,50 +21,46 @@ inline std::vector<Test> set = {
     Test { .name = "busy", .fen = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", .depth = 5 }
 };
 
-inline bool check(Board& board, i32 depth)
+inline bool check(Data& data, i32 depth)
 {
-    auto all = move::gen::get<move::gen::type::ALL>(board);
-    auto quiet = move::gen::get<move::gen::type::QUIET>(board);
-    auto noisy = move::gen::get<move::gen::type::NOISY>(board);
-
-    for (const u16& move : quiet) {
-        if (!board.is_quiet(move)) {
-            board.print();
-            std::cout << board.get_fen() << std::endl;
-            std::cout << move::get_str(move) << std::endl;
-
-            return false;
-        }
-    }
-
-    for (const u16& move : noisy) {
-        if (board.is_quiet(move)) {
-            board.print();
-            std::cout << board.get_fen() << std::endl;
-            std::cout << move::get_str(move) << std::endl;
-
-            return false;
-        }
-    }
+    auto all = move::gen::get<move::gen::type::ALL>(data.board);
+    auto picker = order::Picker(data, move::NONE);
 
     if (depth <= 1) {
         return true;
     }
 
-    for (const u16& move : all) {
-        if (!board.is_legal(move)) {
+    usize count = 0;
+
+    while (true) {
+        u16 move = picker.get(data);
+
+        if (!move) {
+            break;
+        }
+
+        count += 1;
+
+        if (!data.board.is_legal(move)) {
             continue;
         }
 
-        board.make(move);
+        data.make(move);
 
-        bool c = check(board, depth - 1);
+        bool c = check(data, depth - 1);
 
-        board.unmake(move);
+        data.unmake(move);
 
         if (!c) {
             return false;
         }
+    }
+
+    if (count != all.size()) {
+        data.board.print();
+        std::cout << data.board.get_fen() << std::endl;
+
+        return false;
     }
 
     return true;
@@ -72,11 +68,11 @@ inline bool check(Board& board, i32 depth)
 
 inline void test()
 {
-    std::cout << "IS MOVE QUIET TEST" << std::endl;
+    std::cout << "MOVE PICKER TEST" << std::endl;
 
     for (const auto& test : set) {
-        auto board = Board(test.fen);
-        auto result = check(board, test.depth);
+        auto data = Data(Board(test.fen));
+        auto result = check(data, test.depth);
 
         std::cout << std::endl;
         std::cout << test.name << std::endl;

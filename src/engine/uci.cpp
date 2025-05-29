@@ -21,7 +21,7 @@ std::optional<u16> move(const std::string& token, Board& board)
 
     auto moves = move::gen::get<move::gen::type::ALL>(board);
 
-    for (auto move : moves) {
+    for (const auto move : moves) {
         if (!board.is_legal(move)) {
             continue;
         }
@@ -39,24 +39,8 @@ std::optional<u16> move(const std::string& token, Board& board)
         }
 
         if (token.size() == 5 && move::get_type(move) == move::type::PROMOTION) {
-            switch (move::get_promotion_type(move))
-            {
-            case piece::type::KNIGHT:
-                if (token[4] == 'n') {
-                    return move;
-                }
-            case piece::type::BISHOP:
-                if (token[4] == 'b') {
-                    return move;
-                }
-            case piece::type::ROOK:
-                if (token[4] == 'r') {
-                    return move;
-                }
-            case piece::type::QUEEN:
-                if (token[4] == 'q') {
-                    return move;
-                }
+            if (token[4] == piece::type::get_char(move::get_promotion_type(move))) {
+                return move;
             }
 
             continue;
@@ -110,8 +94,8 @@ std::optional<Go> go(std::string in)
 {
     auto option = Go {
         .depth = MAX_PLY,
-        .time = 0,
-        .increment = 0,
+        .time = { 0, 0 },
+        .increment = { 0, 0 },
         .movestogo = {},
         .infinite = false
     };
@@ -154,6 +138,10 @@ std::optional<Go> go(std::string in)
         }
     }
 
+    if ((option.time[0] == 0 || option.time[1] == 0) && option.infinite == false) {
+        return {};
+    }
+
     return option;
 };
 
@@ -185,6 +173,11 @@ std::optional<Setoption> setoption(std::string in)
 
 namespace uci::print
 {
+
+void option()
+{
+    std::cout << "option name Hash type spin default 16 min 1 max 128" << std::endl;
+};
 
 void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull, pv::Line pv)
 {

@@ -4,6 +4,7 @@
 #include "pseudo.h"
 #include "gentype.h"
 #include "quiet.h"
+#include "picker.h"
 
 namespace test
 {
@@ -14,6 +15,7 @@ inline void test()
     test::pseudo::test();
     test::gentype::test();
     test::quiet::test();
+    test::picker::test();
 };
 
 };

@@ -1,11 +1,6 @@
 #pragma once
 
 #include "stack.h"
-#include "pv.h"
-#include "eval.h"
-#include "table.h"
-#include "timer.h"
-#include "uci.h"
 
 class Data
 {

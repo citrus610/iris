@@ -64,12 +64,12 @@ inline void test()
 {
     std::cout << "MOVE GEN TYPE TEST" << std::endl;
 
-    for (const auto& data : set) {
-        auto board = Board(data.fen);
-        auto result = check(board, data.depth);
+    for (const auto& test : set) {
+        auto board = Board(test.fen);
+        auto result = check(board, test.depth);
 
         std::cout << std::endl;
-        std::cout << data.name << std::endl;
+        std::cout << test.name << std::endl;
         
         if (result) {
             std::cout << "passed!" << std::endl;

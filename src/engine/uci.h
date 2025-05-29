@@ -33,6 +33,8 @@ std::optional<Setoption> setoption(std::string in);
 namespace uci::print
 {
 
+void option();
+
 void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull, pv::Line pv);
 
 void best(u16 move);
