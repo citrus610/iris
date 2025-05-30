@@ -1,2 +1,2 @@
-# iris
-wip uci chess engine
+# Iris
+WIP UCI chess engine
