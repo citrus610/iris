@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stack.h"
+#include "history.h"
 
 class Data
 {
@@ -8,6 +9,9 @@ public:
     Board board;
     i32 ply;
     stack::Data stack;
+public:
+    history::Table history;
+public:
     u64 nodes;
     i32 seldepth;
 public:

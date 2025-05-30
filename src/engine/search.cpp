@@ -178,6 +178,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Generates moves
     auto picker = order::Picker(data, move::NONE);
     auto legals = 0;
+    auto quiets = arrayvec<u16, move::MAX>();
 
     // Iterates moves
     while (true)
@@ -239,12 +240,27 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
         // Cutoff
         if (score >= beta) {
+            // History bonus
+            const i16 bonus = history::get_bonus(depth);
+
             if (is_quiet) {
-                // Stores killer moves
+                // Killer
                 data.stack[data.ply].killer = move;
+
+                // History
+                data.history.quiet.update(data.board, move, bonus);
+
+                for (const u16& visited : quiets) {
+                    data.history.quiet.update(data.board, visited, -bonus);
+                }
             }
 
             break;
+        }
+
+        // Adds seen move
+        if (is_quiet) {
+            quiets.add(move);
         }
     }
 

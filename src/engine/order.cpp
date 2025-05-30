@@ -106,7 +106,7 @@ void Picker::sort()
 void Picker::score_quiet(Data& data)
 {
     for (usize i = 0; i < this->moves.size(); ++i) {
-        this->scores[i] = 0;
+        this->scores[i] = data.history.quiet.get(data.board, this->moves[i]);
     }
 };
 

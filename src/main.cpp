@@ -10,7 +10,7 @@ int main()
     auto go = uci::parse::Go();
     auto engine = search::Engine();
 
-    const std::string NAME = "iris v0.1";
+    const std::string NAME = "Iris v0.1";
     const std::string AUTHOR = "citrus610";
 
     while (true)

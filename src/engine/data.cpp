@@ -3,6 +3,7 @@
 Data::Data(const Board& board)
 {
     this->board = board;
+    this->history = history::Table();
     this->clear();
 };
 
@@ -26,8 +27,6 @@ void Data::unmake(const u16& move)
 {
     this->board.unmake(move);
     this->ply -= 1;
-
-    this->stack[this->ply].move = move::NONE;
 };
 
 void Data::make_null()
