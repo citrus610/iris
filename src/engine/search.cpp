@@ -51,7 +51,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
 
             // Principle variation search
             u64 time_1 = timer::get_current();
-            i32 score = this->pvsearch<true>(data, -eval::score::INFINITE, eval::score::INFINITE, i);
+            i32 score = this->aspiration_window(data, i, score_old);
             u64 time_2 = timer::get_current();
 
             // Avoids returning false score when stopped early
@@ -68,9 +68,15 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             }
 
             // Prints infos
-            u64 time = time_2 - time_1;
-
-            uci::print::info(i, data.seldepth, score, data.nodes, time, this->table.hashfull(), pv_history.back());
+            uci::print::info(
+                i,
+                data.seldepth,
+                score,
+                data.nodes,
+                time_2 - time_1,
+                this->table.hashfull(),
+                pv_history.back()
+            );
 
             // Avoids searching too shallow
             if (i < 4) {
@@ -121,6 +127,50 @@ bool Engine::join()
     this->thread = nullptr;
 
     return true;
+};
+
+i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
+{
+    i32 score = -eval::score::INFINITE;
+    i32 delta = tune::aw::DELTA;
+
+    // Sets the window
+    i32 alpha = -eval::score::INFINITE;
+    i32 beta = eval::score::INFINITE;
+
+    if (depth >= tune::aw::DEPTH) {
+        alpha = std::max(score_old - delta, -eval::score::INFINITE);
+        beta = std::min(score_old + delta, eval::score::INFINITE);
+    }
+
+    // Loops
+    while (true)
+    {
+        // Principle variation search
+        score = this->pvsearch<true>(data, alpha, beta, depth);
+
+        // Aborts
+        if (!this->running.test()) {
+            break;
+        }
+
+        // Updates window
+        if (score <= alpha) {
+            beta = (alpha + beta) / 2;
+            alpha = std::max(score - delta, -eval::score::INFINITE);
+        }
+        else if (score >= beta) {
+            beta = std::min(score + delta, eval::score::INFINITE);
+        }
+        else {
+            break;
+        }
+
+        // Increase delta
+        delta = delta + delta / 2;
+    }
+
+    return score;
 };
 
 template <bool PV>

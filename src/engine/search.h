@@ -4,6 +4,7 @@
 #include "table.h"
 #include "timer.h"
 #include "uci.h"
+#include "tune.h"
 
 namespace search
 {
@@ -25,6 +26,7 @@ public:
     bool stop();
     bool join();
 public:
+    i32 aspiration_window(Data& data, i32 depth, i32 score_old);
     template <bool PV> i32 pvsearch(Data& data, i32 alpha, i32 beta, i32 depth);
     template <bool PV> i32 qsearch(Data& data, i32 alpha, i32 beta);
 };
