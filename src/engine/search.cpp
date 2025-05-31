@@ -174,20 +174,83 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
 
     auto table_move = move::NONE;
+    auto table_eval = eval::score::NONE;
+    auto table_score = eval::score::NONE;
+    auto table_depth = 0;
+    auto table_bound = transposition::bound::NONE;
+    auto table_pv = PV;
 
     if (table_hit) {
         table_move = table_entry->get_move();
+        table_eval = table_entry->get_eval();
+        table_score = table_entry->get_score(data.ply);
+        table_depth = table_entry->get_depth();
+        table_bound = table_entry->get_bound();
+        table_pv |= table_entry->is_pv();
+
+        // Cut off
+        if (!PV && table_score != eval::score::NONE && table_depth >= depth) {
+            if ((table_bound == transposition::bound::EXACT) ||
+                (table_bound == transposition::bound::LOWER && table_score >= beta) ||
+                (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+                return table_score;
+            }
+        }
     }
 
+    // Gets important values for search, prunings, extensions
     // In check
     const bool is_in_check = data.board.get_checkers();
 
     // Resets killer move
     data.stack[data.ply + 1].killer = move::NONE;
 
+    // Static eval
+    i32 eval = eval::score::NONE;
+    i32 eval_static = eval::score::NONE;
+
+    if (is_in_check) {
+        data.stack[data.ply].eval = eval::score::NONE;
+        goto loop;
+    }
+    else if (table_hit) {
+        eval_static = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval = eval_static;
+
+        // Uses the node's score as a more accurate eval value
+        if ((table_bound == transposition::bound::EXACT) ||
+            (table_bound == transposition::bound::LOWER && table_score >= beta) ||
+            (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+            eval = table_score;
+        }
+    }
+    else {
+        eval_static = eval::get(data.board);
+        eval = eval_static;
+
+        // Stores this eval into the table
+        table_entry->set(
+            data.board.get_hash(),
+            move::NONE,
+            eval::score::NONE,
+            eval_static,
+            depth,
+            this->table.age,
+            table_pv,
+            transposition::bound::NONE,
+            data.ply
+        );
+    }
+
+    data.stack[data.ply].eval = eval_static;
+
+    // Move loop
+    loop:
+
     // Best score
     i32 best = -eval::score::INFINITE;
     u16 best_move = move::NONE;
+    i32 alpha_old = alpha;
 
     // Generates moves
     auto picker = order::Picker(data, table_move);
@@ -290,15 +353,20 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Updates transposition table
+    u8 bound =
+        best >= beta ? transposition::bound::LOWER :
+        best > alpha_old ? transposition::bound::EXACT :
+        transposition::bound::UPPER;
+
     table_entry->set(
         data.board.get_hash(),
         best_move,
         best,
-        0,
+        eval_static,
         depth,
         this->table.age,
-        false,
-        transposition::bound::NONE,
+        table_pv,
+        bound,
         data.ply
     );
 
@@ -341,21 +409,64 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
 
     auto table_move = move::NONE;
+    auto table_eval = eval::score::NONE;
+    auto table_score = eval::score::NONE;
+    auto table_bound = transposition::bound::NONE;
+    auto table_pv = PV;
 
     if (table_hit) {
         table_move = table_entry->get_move();
+        table_eval = table_entry->get_eval();
+        table_score = table_entry->get_score(data.ply);
+        table_bound = table_entry->get_bound();
+        table_pv |= table_entry->is_pv();
+
+        // Cut off
+        if (!PV && table_score != eval::score::NONE) {
+            if ((table_bound == transposition::bound::EXACT) ||
+                (table_bound == transposition::bound::LOWER && table_score >= beta) ||
+                (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+                return table_score;
+            }
+        }
     }
 
     // Gets static eval
     i32 eval = eval::score::NONE;
+    i32 eval_static = eval::score::NONE;
 
     if (!is_in_check) {
-        eval = eval::get(data.board);
+        eval_static = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval = eval_static;
+
+        if (table_hit) {
+            // Uses the node's score as a more accurate eval value
+            if ((table_bound == transposition::bound::EXACT) ||
+                (table_bound == transposition::bound::LOWER && table_score >= beta) ||
+                (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+                eval = table_score;
+            }
+        }
+        else {
+            // Stores this eval into the table
+            table_entry->set(
+                data.board.get_hash(),
+                move::NONE,
+                eval::score::NONE,
+                eval_static,
+                0,
+                this->table.age,
+                table_pv,
+                transposition::bound::NONE,
+                data.ply
+            );
+        }
     }
 
     // Best score
     i32 best = -eval::score::INFINITE;
     u16 best_move = move::NONE;
+    i32 alpha_old = alpha;
 
     if (!is_in_check) {
         best = eval;
@@ -427,15 +538,20 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     }
 
     // Updates transposition table
+    u8 bound =
+        best >= beta ? transposition::bound::LOWER :
+        best > alpha_old ? transposition::bound::EXACT :
+        transposition::bound::UPPER;
+
     table_entry->set(
         data.board.get_hash(),
         best_move,
         best,
-        eval::score::NONE,
+        eval_static,
         0,
         this->table.age,
-        false,
-        transposition::bound::NONE,
+        table_pv,
+        bound,
         data.ply
     );
 

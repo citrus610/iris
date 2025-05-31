@@ -5,9 +5,6 @@ int main()
 {
     chess::init();
 
-    // 4r3/8/1R4pk/p1p3N1/P1b5/6PP/1P2p3/4K3 w - - 1 39
-    // 8/8/3Q1k2/2P2r2/7K/7P/8/7q b - - 8 58
-
     auto board = Board();
     auto setoption = uci::parse::Setoption();
     auto go = uci::parse::Go();
