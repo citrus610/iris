@@ -9,7 +9,7 @@ Picker::Picker(Data& data, u16 hasher, bool skip)
     this->hasher = hasher;
     this->killer = data.stack[data.ply].killer;
     this->index = 0;
-    this->stage = Stage::HASHER;
+    this->stage = hasher != move::NONE ? Stage::HASHER : Stage::NOISY_GEN;
     this->skip = skip;
 };
 
@@ -18,7 +18,7 @@ u16 Picker::get(Data& data)
     if (this->stage == Stage::HASHER) {
         this->stage = Stage::NOISY_GEN;
 
-        if (data.board.is_pseudo_legal(this->hasher)) {
+        if (data.board.is_pseudo_legal(this->hasher) && !(this->skip && data.board.is_quiet(this->hasher))) {
             return this->hasher;
         }
     }
@@ -54,7 +54,7 @@ u16 Picker::get(Data& data)
     if (this->stage == Stage::KILLER) {
         this->stage = Stage::QUIET_GEN;
 
-        if (this->killer != this->hasher && data.board.is_pseudo_legal(this->killer)) {
+        if (this->killer != this->hasher && data.board.is_quiet(this->killer) && data.board.is_pseudo_legal(this->killer)) {
             return this->killer;
         }
     }

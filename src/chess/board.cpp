@@ -180,6 +180,7 @@ std::string Board::get_fen()
 i8 Board::get_king_square(i8 color)
 {
     assert(color::is_valid(color));
+    assert(this->get_pieces(piece::type::KING, color));
 
     return bitboard::get_lsb(this->get_pieces(piece::type::KING, color));
 };
@@ -323,12 +324,11 @@ bool Board::is_pseudo_legal(u16 move)
     }
 
     // Move type check
-    if (move_type == move::type::PROMOTION) {
+    if (move_type == move::type::CASTLING) {
         return
-            piece::get_type(piece) == piece::type::PAWN &&
-            (bitboard::create(from) & bitboard::PRE_PROMOTION_RANK[this->color]) &&
-            (bitboard::create(to) & bitboard::PROMOTION_RANK[this->color]) &&
-            (bitboard::create(to) & attack::get_king(from));
+            !this->checkers &&
+            (castling::create(to) & this->castling) &&
+            !(bitboard::get_between(from, to) & occupied);
     }
 
     if (move_type == move::type::ENPASSANT) {
@@ -338,11 +338,8 @@ bool Board::is_pseudo_legal(u16 move)
             (attack::get_pawn(from, this->color) & bitboard::create(to));
     }
 
-    if (move_type == move::type::CASTLING) {
-        return
-            !this->checkers &&
-            (castling::create(to) & this->castling) &&
-            !(bitboard::get_between(from, to) & occupied);
+    if (move_type == move::type::PROMOTION && piece::get_type(piece) != piece::type::PAWN) {
+        return false;
     }
 
     // King
@@ -357,12 +354,6 @@ bool Board::is_pseudo_legal(u16 move)
 
     // Pawn
     if (piece::get_type(piece) == piece::type::PAWN) {
-        // We can't reach back ranks
-        if ((bitboard::RANK_1 | bitboard::RANK_8) & bitboard::create(to)) {
-            return false;
-        }
-
-        // Checks move
         u64 span = 0ULL;
 
         if (color == color::WHITE) {
@@ -378,6 +369,11 @@ bool Board::is_pseudo_legal(u16 move)
             u64 capture = attack::get_pawn(from, color::BLACK) & this->colors[color::WHITE];
 
             span = push_1 | push_2 | capture;
+        }
+
+        // Checks promotion
+        if (move_type != move::type::PROMOTION) {
+            span &= ~(bitboard::RANK_1 | bitboard::RANK_8);
         }
 
         return span & bitboard::create(to);
@@ -456,7 +452,6 @@ bool Board::is_legal(u16 move)
             !(attack::get_rook(king_square, occupied) & enemy_rook);
     }
 
-    // Pawn moves
     return !(this->blockers[this->color] & bitboard::create(from)) || (bitboard::get_line(from, to) & this->get_pieces(piece::type::KING, this->color));
 };
 
