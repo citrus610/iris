@@ -155,6 +155,8 @@ void Table::clear(usize thread_count)
     for (auto& t : threads) {
         t.join();
     }
+
+    this->age = 0;
 };
 
 std::pair<bool, Entry*> Table::get(u64 hash)

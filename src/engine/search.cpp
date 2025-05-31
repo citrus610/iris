@@ -70,7 +70,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             // Prints infos
             u64 time = time_2 - time_1;
 
-            uci::print::info(i, data.seldepth, score, data.nodes, time, 0, pv_history.back());
+            uci::print::info(i, data.seldepth, score, data.nodes, time, this->table.hashfull(), pv_history.back());
 
             // Avoids searching too shallow
             if (i < 4) {
@@ -129,6 +129,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Gets is root node
     const bool is_root = data.ply == 0;
 
+    if (!data.board.get_pieces(piece::type::KING, data.board.get_color())) {
+        data.board.print();
+    }
+
     // Quiensence search
     if (depth <= 0) {
         return this->qsearch<PV>(data, alpha, beta);
@@ -166,6 +170,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
 
+    // Probes transposition table
+    auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
+
+    auto table_move = move::NONE;
+
+    if (table_hit) {
+        table_move = table_entry->get_move();
+    }
+
     // In check
     const bool is_in_check = data.board.get_checkers();
 
@@ -174,9 +187,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Best score
     i32 best = -eval::score::INFINITE;
+    u16 best_move = move::NONE;
 
     // Generates moves
-    auto picker = order::Picker(data, move::NONE);
+    auto picker = order::Picker(data, table_move);
     auto legals = 0;
     auto quiets = arrayvec<u16, move::MAX>();
 
@@ -228,6 +242,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         // Updates best
         if (score > best) {
             best = score;
+            best_move = move;
     
             // Updates alpha
             if (score > alpha) {
@@ -274,6 +289,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
 
+    // Updates transposition table
+    table_entry->set(
+        data.board.get_hash(),
+        best_move,
+        best,
+        0,
+        depth,
+        this->table.age,
+        false,
+        transposition::bound::NONE,
+        data.ply
+    );
+
     return best;
 };
 
@@ -309,6 +337,15 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         return is_in_check ? eval::score::DRAW : eval::get(data.board);
     }
 
+    // Probes transposition table
+    auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
+
+    auto table_move = move::NONE;
+
+    if (table_hit) {
+        table_move = table_entry->get_move();
+    }
+
     // Gets static eval
     i32 eval = eval::score::NONE;
 
@@ -318,6 +355,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
     // Best score
     i32 best = -eval::score::INFINITE;
+    u16 best_move = move::NONE;
 
     if (!is_in_check) {
         best = eval;
@@ -334,7 +372,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     }
 
     // Generates moves
-    auto picker = order::Picker(data, move::NONE, !is_in_check);
+    auto picker = order::Picker(data, table_move, !is_in_check);
     auto legals = 0;
 
     // Iterates moves
@@ -366,6 +404,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         // Updates best
         if (score > best) {
             best = score;
+            best_move = move;
 
             // Updates alpha
             if (score > alpha) {
@@ -386,6 +425,19 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     if (legals == 0 && is_in_check) {
         return -eval::score::MATE + data.ply;
     }
+
+    // Updates transposition table
+    table_entry->set(
+        data.board.get_hash(),
+        best_move,
+        best,
+        eval::score::NONE,
+        0,
+        this->table.age,
+        false,
+        transposition::bound::NONE,
+        data.ply
+    );
 
     return best;
 };

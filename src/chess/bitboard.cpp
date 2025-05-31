@@ -36,11 +36,17 @@ void init()
 
 u64 get_between(i8 square_1, i8 square_2)
 {
+    assert(square::is_valid(square_1));
+    assert(square::is_valid(square_2));
+
     return BETWEEN[square_1][square_2];
 };
 
 u64 get_line(i8 square_1, i8 square_2)
 {
+    assert(square::is_valid(square_1));
+    assert(square::is_valid(square_2));
+
     return LINE[square_1][square_2];
 };
 
