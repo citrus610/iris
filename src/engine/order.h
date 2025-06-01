@@ -31,6 +31,8 @@ public:
     u16 get(Data& data);
     Stage get_stage();
 public:
+    bool is_skipped();
+public:
     void sort();
     void score_quiet(Data& data);
     void score_noisy(Data& data);
