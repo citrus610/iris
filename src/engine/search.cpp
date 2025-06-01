@@ -302,6 +302,33 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         return eval;
     }
 
+    // Null move pruning
+    if (!PV &&
+        data.stack[data.ply - 1].move != move::NONE &&
+        eval >= beta &&
+        depth >= tune::nmp::DEPTH &&
+        data.board.has_non_pawn(data.board.get_color())) {
+        // Calculates reduction count based on depth and eval
+        i32 reduction =
+            tune::nmp::REDUCTION +
+            depth / tune::nmp::DIVISOR_DEPTH +
+            std::min((eval - beta) / tune::nmp::DIVISOR_EVAL, tune::nmp::REDUCTION_EVAL_MAX);
+        
+        // Makes null move
+        data.make_null();
+
+        // Scouts
+        i32 score = -this->pvsearch<false>(data, -beta, -beta + 1, depth - reduction);
+
+        // Unmakes
+        data.unmake_null();
+
+        // Returns score if fail high, we don't return false mate score
+        if (score >= beta) {
+            return score < eval::score::MATE_FOUND ? score : beta;
+        }
+    }
+
     // Move loop
     loop:
 

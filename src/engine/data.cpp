@@ -33,7 +33,7 @@ void Data::make_null()
 {
     this->stack[this->ply].move = move::NONE;
 
-    this->board.make(move::NONE);
+    this->board.make_null();
     this->ply += 1;
 };
 
