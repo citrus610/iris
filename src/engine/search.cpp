@@ -365,9 +365,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         // Makes move
         data.make(move);
 
+        // Extensions
+        i32 extension = is_in_check;
+
         // Searches
         i32 score = -eval::score::INFINITE;
-        i32 depth_next = depth - 1;
+        i32 depth_next = depth - 1 + extension;
 
         if (legals > 1 + is_root * 2 &&
             depth >= tune::lmr::DEPTH &&
