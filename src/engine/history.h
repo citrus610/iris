@@ -6,9 +6,9 @@
 namespace history
 {
 
-constexpr i32 BONUS_COEF = 128;
-constexpr i32 BONUS_BIAS = -64;
-constexpr i32 BONUS_MAX = 1024;
+constexpr i32 BONUS_COEF = 150;
+constexpr i32 BONUS_BIAS = -50;
+constexpr i32 BONUS_MAX = 1000;
 
 inline i16 get_bonus(i32 depth)
 {
@@ -39,12 +39,30 @@ public:
 
 };
 
+namespace history::noisy
+{
+
+constexpr i32 MAX = 16384;
+
+class Table
+{
+private:
+    i16 data[12][64][6] = { 0 };
+public:
+    i16& get(Board& board, const u16& move);
+    i16& get(Board& board, const u16& move, i8 captured);
+    void update(Board& board, const u16& move, i16 bonus);
+};
+
+};
+
 namespace history
 {
 
 struct Table
 {
     history::quiet::Table quiet = {};
+    history::noisy::Table noisy = {};
 };
 
 };

@@ -117,25 +117,10 @@ void Picker::score_quiet(Data& data)
 
 void Picker::score_noisy(Data& data)
 {
-    constexpr i32 MVV_LVA[5][6] = {
-        { 150, 140, 130, 120, 110, 100 },
-        { 250, 240, 230, 220, 210, 200 },
-        { 350, 340, 330, 320, 210, 300 },
-        { 450, 440, 430, 420, 410, 400 },
-        { 550, 540, 530, 520, 510, 500 }
-    };
-
     for (usize i = 0; i < this->moves.size(); ++i) {
-        const u16& move = this->moves[i];
+        const i8 captured = data.board.get_captured_type(this->moves[i]);
 
-        i8 piece = data.board.get_type_at(move::get_from(move));
-        i8 captured = move::get_type(move) == move::type::ENPASSANT ? piece::type::PAWN : data.board.get_type_at(move::get_to(move));
-
-        if (captured == piece::type::NONE) {
-            captured = piece::type::PAWN;
-        }
-
-        this->scores[i] = MVV_LVA[captured][piece];
+        this->scores[i] = eval::PIECE_VALUE[captured] * 16 + data.history.noisy.get(data.board, this->moves[i], captured);
     }
 };
 
