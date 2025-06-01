@@ -33,8 +33,8 @@ namespace lmp
 
 namespace fp
 {
-    constexpr i32 COEF = 50;
-    constexpr i32 BIAS = 50;
+    constexpr i32 COEF = 100;
+    constexpr i32 BIAS = 100;
     constexpr i32 DEPTH = 10;
 };
 
