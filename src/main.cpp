@@ -4,6 +4,7 @@
 int main()
 {
     chess::init();
+    search::init();
 
     auto board = Board();
     auto setoption = uci::parse::Setoption();
