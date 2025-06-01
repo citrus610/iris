@@ -626,6 +626,11 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         // Unmakes move
         data.unmake(move);
 
+        // Aborts search
+        if (!this->running.test()) {
+            return eval::score::DRAW;
+        }
+
         // Skips quiet moves if we've found non-mate score
         if (is_in_check && score > -eval::score::MATE_FOUND) {
             picker.skip_quiets();
