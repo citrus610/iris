@@ -54,7 +54,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             i32 score = this->aspiration_window(data, i, score_old);
             u64 time_2 = timer::get_current();
 
-            // Avoids returning false score when stopped early
+            // Avoids returning false score when stopping early
             if (!this->running.test()) {
                 score = score_old;
             }
@@ -293,6 +293,14 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     data.stack[data.ply].eval = eval_static;
+
+    // Reverse futility pruning
+    if (!PV &&
+        depth <= tune::rfp::DEPTH &&
+        eval < eval::score::MATE_FOUND &&
+        eval >= beta + depth * tune::rfp::COEF) {
+        return eval;
+    }
 
     // Move loop
     loop:
