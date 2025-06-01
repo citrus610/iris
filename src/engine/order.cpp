@@ -89,6 +89,11 @@ Stage Picker::get_stage()
     return this->stage;
 };
 
+bool Picker::is_skipped()
+{
+    return skip;
+};
+
 void Picker::sort()
 {
     usize best = this->index;
