@@ -31,4 +31,6 @@ public:
     template <bool PV> i32 qsearch(Data& data, i32 alpha, i32 beta);
 };
 
+void init();
+
 };

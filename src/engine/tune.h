@@ -26,4 +26,15 @@ namespace nmp
     constexpr i32 DIVISOR_EVAL = 200;
 };
 
+namespace lmr
+{
+    constexpr i32 DEPTH = 3;
+    constexpr double COEF = 0.35;
+    constexpr double BIAS = 0.8;
+
+    extern i32 TABLE[MAX_PLY][move::MAX];
+};
+
+void init();
+
 };

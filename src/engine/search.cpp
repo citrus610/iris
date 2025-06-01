@@ -369,8 +369,25 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         i32 score = -eval::score::INFINITE;
         i32 depth_next = depth - 1;
 
+        if (legals > 1 + is_root * 2 &&
+            depth >= tune::lmr::DEPTH &&
+            is_quiet) {
+            // Gets reduction count
+            i32 reduction = tune::lmr::TABLE[depth][legals];
+
+            // Clamps depth to avoid qsearch
+            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next + 1);
+
+            // Scouts
+            score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_reduced);
+
+            // Failed high
+            if (score > alpha && depth_reduced < depth_next) {
+                score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_next);
+            }
+        }
         // Scouts with null window for non pv nodes
-        if (!PV || legals > 1) {
+        else if (!PV || legals > 1) {
             score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_next);
         }
 
@@ -648,5 +665,10 @@ template i32 Engine::pvsearch<false>(Data&, i32, i32, i32);
 
 template i32 Engine::qsearch<true>(Data&, i32, i32);
 template i32 Engine::qsearch<false>(Data&, i32, i32);
+
+void init()
+{
+    tune::init();
+};
 
 };
