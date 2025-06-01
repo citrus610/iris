@@ -6,9 +6,9 @@
 namespace history
 {
 
-constexpr i32 BONUS_COEF = 128;
-constexpr i32 BONUS_BIAS = -64;
-constexpr i32 BONUS_MAX = 1024;
+constexpr i32 BONUS_COEF = 150;
+constexpr i32 BONUS_BIAS = -50;
+constexpr i32 BONUS_MAX = 1000;
 
 inline i16 get_bonus(i32 depth)
 {
