@@ -185,6 +185,19 @@ i8 Board::get_king_square(i8 color)
     return bitboard::get_lsb(this->get_pieces(piece::type::KING, color));
 };
 
+i8 Board::get_captured_type(u16 move)
+{
+    assert(!this->is_quiet(move));
+
+    i8 captured = move::get_type(move) == move::type::ENPASSANT ? piece::type::PAWN : this->get_type_at(move::get_to(move));
+
+    if (captured == piece::type::NONE) {
+        captured = piece::type::PAWN;
+    }
+
+    return captured;
+};
+
 u64 Board::get_attackers(i8 square, u64 occupied)
 {
     return

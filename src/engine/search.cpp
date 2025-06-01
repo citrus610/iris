@@ -341,6 +341,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     auto picker = order::Picker(data, table_move);
     auto legals = 0;
     auto quiets = arrayvec<u16, move::MAX>();
+    auto noisies = arrayvec<u16, move::MAX>();
 
     // Iterates moves
     while (true)
@@ -439,20 +440,32 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 // Killer
                 data.stack[data.ply].killer = move;
 
-                // History
+                // Quiet history
                 data.history.quiet.update(data.board, move, bonus);
 
                 for (const u16& visited : quiets) {
                     data.history.quiet.update(data.board, visited, -bonus);
                 }
             }
+            else {
+                // Noisy history
+                data.history.noisy.update(data.board, move, bonus);
+            }
+
+            // Even if the best move wasn't noisy, we still decrease the other noisy moves' history scores
+            for (const u16& visited : noisies) {
+                data.history.noisy.update(data.board, visited, -bonus);
+            }
 
             break;
         }
 
-        // Adds seen move
+        // Adds seen moves
         if (is_quiet) {
             quiets.add(move);
+        }
+        else {
+            noisies.add(move);
         }
     }
 
