@@ -19,6 +19,9 @@ private:
     timer::Data timer;
     transposition::Table table;
 public:
+    u64 nodes;
+    u64 time;
+public:
     Engine();
 public:
     void clear();

@@ -43,9 +43,14 @@ public:
     void skip_quiets();
 };
 
-inline bool operator < (const Stage& a, const Stage& b)
+};
+
+inline bool operator < (order::Stage a, order::Stage b)
 {
     return static_cast<i32>(a) < static_cast<i32>(b);
 };
 
+inline bool operator > (order::Stage a, order::Stage b)
+{
+    return static_cast<i32>(a) > static_cast<i32>(b);
 };

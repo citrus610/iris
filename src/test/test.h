@@ -6,6 +6,7 @@
 #include "quiet.h"
 #include "picker.h"
 #include "see.h"
+#include "bench.h"
 
 namespace test
 {
@@ -18,6 +19,7 @@ inline void test()
     test::quiet::test();
     test::picker::test();
     test::static_exchange::test();
+    test::bench::test();
 };
 
 };

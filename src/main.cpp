@@ -87,6 +87,23 @@ int main()
             continue;
         }
 
+        if (tokens[0] == "perft") {
+            if (tokens.size() < 2) {
+                std::cout << "Invalid perft command!" << std::endl;
+                continue;
+            }
+
+            test::perft::get<true>(board, std::stoi(tokens[1]));
+
+            continue;
+        }
+
+        if (tokens[0] == "bench") {
+            test::bench::test();
+
+            continue;
+        }
+
         if (tokens[0] == "go") {
             // Reads go infos
             auto uci_go = uci::parse::go(input);
