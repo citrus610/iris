@@ -603,6 +603,8 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         }
     }
 
+    data.stack[data.ply].eval = eval_static;
+
     // Best score
     i32 best = -eval::score::INFINITE;
     u16 best_move = move::NONE;
@@ -645,6 +647,14 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
         // Pruning
         if (best > -eval::score::MATE_FOUND) {
+            // Futility pruning
+            i32 futility = data.stack[data.ply].eval + tune::seep::MARGIN_QS;
+
+            if (futility <= alpha && !see::is_ok(data.board, move, 1)) {
+                best = std::max(best, futility);
+                continue;
+            }
+
             // SEE pruning
             if (!see::is_ok(data.board, move, tune::seep::MARGIN_QS)) {
                 continue;
