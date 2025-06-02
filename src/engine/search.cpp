@@ -14,6 +14,8 @@ void Engine::clear()
     this->thread = nullptr;
     this->timer.clear();
     this->table.clear();
+    this->nodes = 0;
+    this->time = 0;
 };
 
 void Engine::set(uci::parse::Setoption uci_setoption)
@@ -30,6 +32,8 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
     // Updates data
     this->table.update();
     this->timer.set(uci_go, uci_board.get_color());
+    this->nodes = 0;
+    this->time = 0;
 
     // Starts the search thread
     this->running.test_and_set();
@@ -77,6 +81,10 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 this->table.hashfull(),
                 pv_history.back()
             );
+
+            // Saves search stats
+            this->nodes += data.nodes;
+            this->time += time_2 - time_1;
 
             // Avoids searching too shallow
             if (i < 4) {
@@ -381,6 +389,16 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 lmr_depth <= tune::fp::DEPTH &&
                 eval_static + lmr_depth * tune::fp::COEF + tune::fp::BIAS <= alpha) {
                 picker.skip_quiets();
+                continue;
+            }
+
+            // SEE pruning
+            i32 see_margin =
+                is_quiet ?
+                tune::seep::MARGIN_QUIET * lmr_depth :
+                tune::seep::MARGIN_NOISY * lmr_depth * lmr_depth;
+            
+            if (picker.get_stage() > order::Stage::KILLER && !see::is_ok(data.board, move, see_margin)) {
                 continue;
             }
         }

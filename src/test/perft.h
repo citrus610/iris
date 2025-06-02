@@ -23,6 +23,10 @@ inline u64 get(Board& board, i32 depth)
             }
         }
 
+        if constexpr (ROOT) {
+            std::cout << "nodes: " << count << std::endl;
+        }
+
         return count;
     }
 
@@ -42,6 +46,10 @@ inline u64 get(Board& board, i32 depth)
         }
 
         count += nodes;
+    }
+
+    if constexpr (ROOT) {
+        std::cout << "nodes: " << count << std::endl;
     }
 
     return count;

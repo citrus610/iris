@@ -42,6 +42,8 @@ namespace fp
 namespace seep
 {
     constexpr i32 MARGIN_QS = -50;
+    constexpr i32 MARGIN_QUIET = -100;
+    constexpr i32 MARGIN_NOISY = -25;
 };
 
 namespace lmr
