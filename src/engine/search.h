@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "uci.h"
 #include "tune.h"
+#include "see.h"
 
 namespace search
 {

@@ -38,6 +38,11 @@ namespace fp
     constexpr i32 DEPTH = 10;
 };
 
+namespace seep
+{
+    constexpr i32 MARGIN_QS = -50;
+};
+
 namespace lmr
 {
     constexpr i32 DEPTH = 3;
@@ -45,6 +50,11 @@ namespace lmr
     constexpr double BIAS = 0.8;
 
     extern i32 TABLE[MAX_PLY][move::MAX];
+};
+
+namespace iir
+{
+    constexpr i32 DEPTH = 3;
 };
 
 void init();
