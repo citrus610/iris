@@ -6,15 +6,18 @@ namespace order
 Picker::Picker(Data& data, u16 hasher, bool skip)
 {
     this->moves.clear();
+    this->baddies.clear();
     this->hasher = hasher;
     this->killer = data.stack[data.ply].killer;
-    this->index = 0;
     this->stage = hasher != move::NONE ? Stage::HASHER : Stage::NOISY_GEN;
+    this->index = 0;
+    this->index_bad = 0;
     this->skip = skip;
 };
 
 u16 Picker::get(Data& data)
 {
+    // Hash move
     if (this->stage == Stage::HASHER) {
         this->stage = Stage::NOISY_GEN;
 
@@ -23,21 +26,32 @@ u16 Picker::get(Data& data)
         }
     }
 
+    // Generates noisy moves
     if (this->stage == Stage::NOISY_GEN) {
-        this->stage = Stage::NOISY;
+        this->stage = Stage::NOISY_GOOD;
         this->index = 0;
         this->moves = move::gen::get<move::gen::type::NOISY>(data.board);
         this->score_noisy(data);
     }
 
-    if (this->stage == Stage::NOISY) {
+    // Returns good noisy move
+    if (this->stage == Stage::NOISY_GOOD) {
         while (this->index < this->moves.size())
         {
             this->sort();
+
             auto best = this->moves[this->index];
+            auto score = this->scores[this->index];
+
             this->index += 1;
 
             if (best == this->hasher) {
+                continue;
+            }
+
+            // Adds moves that fail to pass SEE to the baddies list :D
+            if (!see::is_ok(data.board, best, -score / 32)) {
+                this->baddies.add(best);
                 continue;
             }
 
@@ -47,10 +61,13 @@ u16 Picker::get(Data& data)
         this->stage = Stage::KILLER;
     }
 
+    // If skipped quiet moves, returns bad noisy moves
     if (skip) {
-        return move::NONE;
+        this->stage = Stage::NOISY_BAD;
+        goto noisy_baddies;
     }
 
+    // Returns killer move
     if (this->stage == Stage::KILLER) {
         this->stage = Stage::QUIET_GEN;
 
@@ -59,6 +76,7 @@ u16 Picker::get(Data& data)
         }
     }
 
+    // Generates quiet moves
     if (this->stage == Stage::QUIET_GEN) {
         this->stage = Stage::QUIET;
         this->index = 0;
@@ -66,11 +84,14 @@ u16 Picker::get(Data& data)
         this->score_quiet(data);
     }
 
+    // Returns quiet moves
     if (this->stage == Stage::QUIET) {
         while (this->index < this->moves.size())
         {
             this->sort();
+
             auto best = this->moves[this->index];
+
             this->index += 1;
 
             if (best == this->hasher || best == this->killer) {
@@ -79,6 +100,24 @@ u16 Picker::get(Data& data)
 
             return best;
         }
+
+        this->stage = Stage::NOISY_BAD;
+    }
+
+    // Returns bad noisy moves
+    noisy_baddies:
+
+    while (this->index_bad < this->baddies.size())
+    {
+        auto best = this->baddies[this->index_bad];
+
+        this->index_bad += 1;
+
+        if (best == this->hasher) {
+            continue;
+        }
+
+        return best;
     }
 
     return move::NONE;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data.h"
+#include "see.h"
 
 namespace order
 {
@@ -9,21 +10,24 @@ enum class Stage
 {
     HASHER,
     NOISY_GEN,
-    NOISY,
+    NOISY_GOOD,
     KILLER,
     QUIET_GEN,
-    QUIET
+    QUIET,
+    NOISY_BAD
 };
 
 class Picker
 {
 private:
     arrayvec<u16, move::MAX> moves;
+    arrayvec<u16, move::MAX> baddies;
     i32 scores[move::MAX];
     u16 hasher;
     u16 killer;
-    usize index;
     Stage stage;
+    usize index;
+    usize index_bad;
     bool skip;
 public:
     Picker(Data& data, u16 hasher, bool skip = false);
