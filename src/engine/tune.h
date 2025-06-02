@@ -31,6 +31,13 @@ namespace lmp
     constexpr i32 BASE = 3;
 };
 
+namespace fp
+{
+    constexpr i32 COEF = 100;
+    constexpr i32 BIAS = 50;
+    constexpr i32 DEPTH = 10;
+};
+
 namespace lmr
 {
     constexpr i32 DEPTH = 3;

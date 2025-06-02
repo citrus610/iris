@@ -370,6 +370,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 legals >= depth * depth + tune::lmp::BASE) {
                 picker.skip_quiets();
             }
+
+            // Futility pruning
+            i32 lmr_reduction = tune::lmr::TABLE[depth][legals];
+            i32 lmr_depth = std::max(0, depth - lmr_reduction);
+
+            if (!picker.is_skipped() &&
+                !is_in_check &&
+                is_quiet &&
+                lmr_depth <= tune::fp::DEPTH &&
+                eval_static + lmr_depth * tune::fp::COEF + tune::fp::BIAS <= alpha) {
+                picker.skip_quiets();
+                continue;
+            }
         }
 
         // Makes move
