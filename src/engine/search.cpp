@@ -379,8 +379,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 !is_in_check &&
                 is_quiet &&
                 lmr_depth <= tune::fp::DEPTH &&
-                eval + lmr_depth * tune::fp::COEF + tune::fp::BIAS <= alpha) {
+                eval_static + lmr_depth * tune::fp::COEF + tune::fp::BIAS <= alpha) {
                 picker.skip_quiets();
+                continue;
             }
         }
 
