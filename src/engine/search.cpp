@@ -643,6 +643,14 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
         legals += 1;
 
+        // Pruning
+        if (best > -eval::score::MATE_FOUND) {
+            // SEE pruning
+            if (!see::is_ok(data.board, move, tune::seep::MARGIN_QS)) {
+                continue;
+            }
+        }
+
         // Makes move
         data.make(move);
 
