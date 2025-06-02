@@ -1,7 +1,8 @@
 #pragma once
 
 #include "eval.h"
-#include "stack.h"
+
+struct Data;
 
 namespace history
 {
@@ -56,13 +57,46 @@ public:
 
 };
 
+namespace history::cont
+{
+
+constexpr i32 MAX = 16384;
+
+class Entry
+{
+private:
+    i16 data[12][64] = { 0 };
+public:
+    i16& get(Board& board, const u16& move);
+    void update(Board& board, const u16& move, i16 bonus);
+};
+
+class Table
+{
+private:
+    Entry data[12][64] = {};
+public:
+    Entry& get_entry(Board& board, const u16& move);
+    i16 get(Data& data, const u16& move);
+    i16 get(Data& data, const u16& move, i32 offset);
+    void update(Data& data, const u16& move, i16 bonus);
+    void update(Data& data, const u16& move, i32 offset, i16 bonus);
+};
+
+};
+
 namespace history
 {
 
-struct Table
+class Table
 {
+public:
     history::quiet::Table quiet = {};
     history::noisy::Table noisy = {};
+    history::cont::Table cont = {};
+public:
+    i32 get_score_quiet(Data& data, const u16& move);
+    i32 get_score_noisy(Data& data, const u16& move);
 };
 
 };

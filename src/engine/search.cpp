@@ -473,9 +473,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
                 // Quiet history
                 data.history.quiet.update(data.board, move, bonus);
+                data.history.cont.update(data, move, bonus);
 
                 for (const u16& visited : quiets) {
                     data.history.quiet.update(data.board, visited, -bonus);
+                    data.history.cont.update(data, visited, -bonus);
                 }
             }
             else {
