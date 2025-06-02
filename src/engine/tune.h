@@ -36,6 +36,7 @@ namespace fp
     constexpr i32 COEF = 100;
     constexpr i32 BIAS = 50;
     constexpr i32 DEPTH = 10;
+    constexpr i32 MARGIN_QS = 150;
 };
 
 namespace seep
