@@ -5,61 +5,69 @@
 namespace tune
 {
 
-namespace aw
+class Value
 {
-    constexpr i32 DEPTH = 4;
-    constexpr i32 DELTA = 25;
+public:
+    std::string name;
+    i32 value;
+    i32 min;
+    i32 max;
+    i32 step;
+public:
+    Value(std::string name, i32 value, i32 min, i32 max, i32 step, bool tunable);
+public:
+    inline operator i32 () { return this->value; };
 };
 
-namespace rfp
-{
-    constexpr i32 DEPTH = 8;
-    constexpr i32 COEF = 50;
-};
+inline std::vector<Value*> values;
 
-namespace nmp
-{
-    constexpr i32 DEPTH = 3;
-    constexpr i32 REDUCTION = 4;
-    constexpr i32 REDUCTION_EVAL_MAX = 3;
-    constexpr i32 DIVISOR_DEPTH = 5;
-    constexpr i32 DIVISOR_EVAL = 200;
-};
+// #define TUNE 1
 
-namespace lmp
-{
-    constexpr i32 BASE = 3;
-};
+#ifdef TUNE
+    constexpr bool TUNING = true;
+    #define VALUE(name, value, min, max, step, tunable) inline auto name = Value(#name, value, min, max, step, tunable);
+#else
+    constexpr bool TUNING = false;
+    #define VALUE(name, value, min, max, step, tunable) constexpr i32 name = value;
+#endif
 
-namespace fp
-{
-    constexpr i32 COEF = 100;
-    constexpr i32 BIAS = 50;
-    constexpr i32 DEPTH = 10;
-    constexpr i32 MARGIN_QS = 150;
-};
+VALUE(AW_DEPTH, 4, 3, 6, 1, false)
+VALUE(AW_DELTA, 25, 10, 50, 20, true)
 
-namespace seep
-{
-    constexpr i32 MARGIN_QS = -50;
-    constexpr i32 MARGIN_QUIET = -100;
-    constexpr i32 MARGIN_NOISY = -25;
-};
+VALUE(RFP_DEPTH, 8, 6, 12, 1, false)
+VALUE(RFP_COEF, 50, 20, 100, 20, true)
 
-namespace lmr
-{
-    constexpr i32 DEPTH = 3;
-    constexpr double COEF = 0.35;
-    constexpr double BIAS = 0.8;
+VALUE(NMP_DEPTH, 3, 3, 8, 1, false)
+VALUE(NMP_REDUCTION, 4, 2, 5, 1, false)
+VALUE(NMP_REDUCTION_EVAL_MAX, 3, 1, 5, 1, false)
+VALUE(NMP_DIVISOR_DEPTH, 5, 2, 8, 1, false)
+VALUE(NMP_DIVISOR_EVAL, 200, 50, 500, 20, true)
 
-    extern i32 TABLE[MAX_PLY][move::MAX];
-};
+VALUE(LMP_BASE, 3, 3, 3, 0, false)
 
-namespace iir
-{
-    constexpr i32 DEPTH = 3;
-};
+VALUE(FP_COEF, 100, 50, 500, 20, true)
+VALUE(FP_BIAS, 50, 0, 250, 20, true)
+VALUE(FP_DEPTH, 10, 8, 12, 1, false)
+VALUE(FP_MARGIN_QS, 150, 20, 500, 20, true)
+
+VALUE(SEEP_MARGIN_QS, -50, -250, 0, 20, true)
+VALUE(SEEP_MARGIN_QUIET, -100, -250, -50, 20, true)
+VALUE(SEEP_MARGIN_NOISY, -25, -50, -10, 10, true)
+
+VALUE(LMR_DEPTH, 3, 0, 0, 10, false)
+VALUE(LMR_COEF, 35, 25, 50, 20, true)
+VALUE(LMR_BIAS, 80, 50, 100, 20, true)
+
+VALUE(HS_BONUS_COEF, 150, 50, 500, 20, true)
+VALUE(HS_BONUS_BIAS, -50, -250, 0, 20, true)
+VALUE(HS_BONUS_MAX, 1000, 500, 2500, 100, true)
+
+inline i32 LMR_TABLE[MAX_PLY][move::MAX];
 
 void init();
+
+Value* find(std::string name);
+
+void print_spsa();
 
 };
