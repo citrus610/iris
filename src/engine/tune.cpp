@@ -50,4 +50,16 @@ Value* find(std::string name)
     return nullptr;
 };
 
+void print_spsa()
+{
+    for (auto value : values) {
+        std::cout << '"' << value->name << '"' << ": {\n";
+        std::cout << "    \"value\": " << value->value << ",\n";
+        std::cout << "    \"min_value\": " << value->min << ",\n";
+        std::cout << "    \"max_value\": " << value->max << ",\n";
+        std::cout << "    \"step\": " << value->step << "\n";
+        std::cout << "},\n";
+    }
+};
+
 };
