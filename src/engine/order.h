@@ -12,6 +12,7 @@ enum class Stage
     NOISY_GEN,
     NOISY_GOOD,
     KILLER,
+    COUNTER,
     QUIET_GEN,
     QUIET,
     NOISY_BAD
@@ -25,6 +26,7 @@ private:
     i32 scores[move::MAX];
     u16 hasher;
     u16 killer;
+    u16 counter;
     Stage stage;
     usize index;
     usize index_bad;

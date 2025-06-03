@@ -85,6 +85,20 @@ public:
 
 };
 
+namespace history::counter
+{
+
+class Table
+{
+private:
+    u16 data[12][64] = {};
+public:
+    u16 get(Data& data);
+    void set(Data& data, const u16& move);
+};
+
+};
+
 namespace history
 {
 
@@ -94,6 +108,7 @@ public:
     history::quiet::Table quiet = {};
     history::noisy::Table noisy = {};
     history::cont::Table cont = {};
+    history::counter::Table counter = {};
 public:
     i32 get_score_quiet(Data& data, const u16& move);
     i32 get_score_noisy(Data& data, const u16& move);

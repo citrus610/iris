@@ -104,6 +104,33 @@ void Table::update(Data& data, const u16& move, i32 offset, i16 bonus)
 
 };
 
+namespace history::counter
+{
+
+u16 Table::get(Data& data)
+{
+    if (data.ply < 1 || !data.stack[data.ply - 1].move) {
+        return move::NONE;
+    }
+
+    const i8 previous_to = move::get_to(data.stack[data.ply - 1].move);
+    const i8 previous_piece = data.board.get_piece_at(previous_to);
+
+    return this->data[previous_piece][previous_to];
+};
+
+void Table::set(Data& data, const u16& move)
+{
+    if (data.ply > 0 && data.stack[data.ply - 1].move) {
+        const i8 previous_to = move::get_to(data.stack[data.ply - 1].move);
+        const i8 previous_piece = data.board.get_piece_at(previous_to);
+
+        this->data[previous_piece][previous_to] = move;
+    }
+};
+
+};
+
 namespace history
 {
 

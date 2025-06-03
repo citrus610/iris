@@ -9,10 +9,19 @@ Picker::Picker(Data& data, u16 hasher, bool skip)
     this->baddies.clear();
     this->hasher = hasher;
     this->killer = data.stack[data.ply].killer;
+    this->counter = data.history.counter.get(data);
     this->stage = hasher != move::NONE ? Stage::HASHER : Stage::NOISY_GEN;
     this->index = 0;
     this->index_bad = 0;
     this->skip = skip;
+
+    if (this->killer == this->hasher) {
+        this->killer = move::NONE;
+    }
+
+    if (this->counter == this->killer || this->counter == this->hasher) {
+        this->counter = move::NONE;
+    }
 };
 
 u16 Picker::get(Data& data)
@@ -69,10 +78,19 @@ u16 Picker::get(Data& data)
 
     // Returns killer move
     if (this->stage == Stage::KILLER) {
+        this->stage = Stage::COUNTER;
+
+        if (data.board.is_quiet(this->killer) && data.board.is_pseudo_legal(this->killer)) {
+            return this->killer;
+        }
+    }
+
+    // Returns counter move
+    if (this->stage == Stage::COUNTER) {
         this->stage = Stage::QUIET_GEN;
 
-        if (this->killer != this->hasher && data.board.is_quiet(this->killer) && data.board.is_pseudo_legal(this->killer)) {
-            return this->killer;
+        if (data.board.is_quiet(this->counter) && data.board.is_pseudo_legal(this->counter)) {
+            return this->counter;
         }
     }
 
@@ -94,7 +112,7 @@ u16 Picker::get(Data& data)
 
             this->index += 1;
 
-            if (best == this->hasher || best == this->killer) {
+            if (best == this->hasher || best == this->killer || best == this->counter) {
                 continue;
             }
 

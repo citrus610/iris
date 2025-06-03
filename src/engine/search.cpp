@@ -471,6 +471,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 // Killer
                 data.stack[data.ply].killer = move;
 
+                // Counter
+                data.history.counter.set(data, move);
+
                 // Quiet history
                 data.history.quiet.update(data.board, move, bonus);
                 data.history.cont.update(data, move, bonus);
