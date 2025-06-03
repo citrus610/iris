@@ -1,19 +1,16 @@
 #pragma once
 
 #include "eval.h"
+#include "tune.h"
 
 struct Data;
 
 namespace history
 {
 
-constexpr i32 BONUS_COEF = 150;
-constexpr i32 BONUS_BIAS = -50;
-constexpr i32 BONUS_MAX = 1000;
-
 inline i16 get_bonus(i32 depth)
 {
-    return std::min(depth * BONUS_COEF + BONUS_BIAS, BONUS_MAX);
+    return std::min(depth * tune::HS_BONUS_COEF + tune::HS_BONUS_BIAS, tune::HS_BONUS_MAX);
 };
 
 template <i16 MAX>

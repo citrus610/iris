@@ -40,6 +40,9 @@ int main()
         if (tokens[0] == "uci") {
             std::cout << "id name " << NAME << std::endl;
             std::cout << "id author " << AUTHOR << std::endl;
+
+            uci::print::option();
+
             std::cout << "uciok" << std::endl;
 
             continue;
@@ -54,6 +57,8 @@ int main()
             }
 
             setoption = uci_setoption.value();
+
+            engine.set(setoption);
 
             continue;
         }

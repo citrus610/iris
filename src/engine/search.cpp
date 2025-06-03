@@ -140,13 +140,13 @@ bool Engine::join()
 i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
 {
     i32 score = -eval::score::INFINITE;
-    i32 delta = tune::aw::DELTA;
+    i32 delta = tune::AW_DELTA;
 
     // Sets the window
     i32 alpha = -eval::score::INFINITE;
     i32 beta = eval::score::INFINITE;
 
-    if (depth >= tune::aw::DEPTH) {
+    if (depth >= tune::AW_DEPTH) {
         alpha = std::max(score_old - delta, -eval::score::INFINITE);
         beta = std::min(score_old + delta, eval::score::INFINITE);
     }
@@ -304,9 +304,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Reverse futility pruning
     if (!PV &&
-        depth <= tune::rfp::DEPTH &&
+        depth <= tune::RFP_DEPTH &&
         eval < eval::score::MATE_FOUND &&
-        eval >= beta + depth * tune::rfp::COEF) {
+        eval >= beta + depth * tune::RFP_COEF) {
         return eval;
     }
 
@@ -314,13 +314,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     if (!PV &&
         data.stack[data.ply - 1].move != move::NONE &&
         eval >= beta &&
-        depth >= tune::nmp::DEPTH &&
+        depth >= tune::NMP_DEPTH &&
         data.board.has_non_pawn(data.board.get_color())) {
         // Calculates reduction count based on depth and eval
         i32 reduction =
-            tune::nmp::REDUCTION +
-            depth / tune::nmp::DIVISOR_DEPTH +
-            std::min((eval - beta) / tune::nmp::DIVISOR_EVAL, tune::nmp::REDUCTION_EVAL_MAX);
+            tune::NMP_REDUCTION +
+            depth / tune::NMP_DIVISOR_DEPTH +
+            std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, tune::NMP_REDUCTION_EVAL_MAX);
         
         // Makes null move
         data.make_null();
@@ -375,19 +375,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         if (!is_root && best > -eval::score::MATE_FOUND) {
             // Late move pruning
             if (!picker.is_skipped() &&
-                legals >= depth * depth + tune::lmp::BASE) {
+                legals >= depth * depth + tune::LMP_BASE) {
                 picker.skip_quiets();
             }
 
             // Futility pruning
-            i32 lmr_reduction = tune::lmr::TABLE[depth][legals];
+            i32 lmr_reduction = tune::LMR_TABLE[depth][legals];
             i32 lmr_depth = std::max(0, depth - lmr_reduction);
 
             if (!picker.is_skipped() &&
                 !is_in_check &&
                 is_quiet &&
-                lmr_depth <= tune::fp::DEPTH &&
-                eval_static + lmr_depth * tune::fp::COEF + tune::fp::BIAS <= alpha) {
+                lmr_depth <= tune::FP_DEPTH &&
+                eval_static + lmr_depth * tune::FP_COEF + tune::FP_BIAS <= alpha) {
                 picker.skip_quiets();
                 continue;
             }
@@ -395,8 +395,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             // SEE pruning
             i32 see_margin =
                 is_quiet ?
-                tune::seep::MARGIN_QUIET * lmr_depth :
-                tune::seep::MARGIN_NOISY * lmr_depth * lmr_depth;
+                tune::SEEP_MARGIN_QUIET * lmr_depth :
+                tune::SEEP_MARGIN_NOISY * lmr_depth * lmr_depth;
             
             if (picker.get_stage() > order::Stage::KILLER && !see::is_ok(data.board, move, see_margin)) {
                 continue;
@@ -414,10 +414,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         i32 depth_next = depth - 1 + extension;
 
         if (legals > 1 + is_root * 2 &&
-            depth >= tune::lmr::DEPTH &&
+            depth >= tune::LMR_DEPTH &&
             is_quiet) {
             // Gets reduction count
-            i32 reduction = tune::lmr::TABLE[depth][legals];
+            i32 reduction = tune::LMR_TABLE[depth][legals];
 
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next + 1);
@@ -669,7 +669,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         if (best > -eval::score::MATE_FOUND) {
             // Futility pruning
             if (!is_in_check) {
-                const i32 futility = data.stack[data.ply].eval + tune::fp::MARGIN_QS;
+                const i32 futility = data.stack[data.ply].eval + tune::FP_MARGIN_QS;
 
                 if (futility <= alpha && !see::is_ok(data.board, move, 1)) {
                     best = std::max(best, futility);
@@ -678,7 +678,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
             }
 
             // SEE pruning
-            if (!see::is_ok(data.board, move, tune::seep::MARGIN_QS)) {
+            if (!see::is_ok(data.board, move, tune::SEEP_MARGIN_QS)) {
                 continue;
             }
         }

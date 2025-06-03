@@ -160,9 +160,15 @@ std::optional<Setoption> setoption(std::string in)
         tokens.push_back(token);
     }
 
-    for (usize i = 1; i < tokens.size(); ++i) {
-        if (tokens[i] == "Hash") {
-            option.hash = std::stoi(tokens[i + 2]);
+    if (tokens[2] == "Hash" && tokens.size() > 4) {
+        option.hash = std::stoi(tokens[4]);
+    }
+
+    if constexpr (tune::TUNING) {
+        auto value = tune::find(tokens[2]);
+
+        if (value != nullptr) {
+            value->value = std::stoi(tokens[4]);
         }
     }
 
@@ -177,6 +183,14 @@ namespace uci::print
 void option()
 {
     std::cout << "option name Hash type spin default 16 min 1 max 128" << std::endl;
+
+    if constexpr (!tune::TUNING) {
+        return;
+    }
+
+    for (auto value : tune::values) {
+        std::cout << "option name " << value->name << " type spin default " << value->value << " min " << value->min << " max " << value->max << std::endl;
+    }
 };
 
 void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull, pv::Line pv)

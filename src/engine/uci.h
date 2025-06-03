@@ -2,6 +2,7 @@
 
 #include "pv.h"
 #include "eval.h"
+#include "tune.h"
 
 namespace uci::parse
 {
