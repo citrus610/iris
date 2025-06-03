@@ -12,18 +12,22 @@ else
 CXXFLAGS += -fdiagnostics-color=always -DUNICODE -DNDEBUG -std=c++20 -Wall -O3 -flto $(CXXPROF) -march=native
 endif
 
+ifeq ($(TUNE), true)
+CXXFLAGS += -DTUNE
+endif
+
 ifeq ($(PEXT), true)
 CXXFLAGS += -DUSE_PEXT
 endif
 
 SRC = src/chess/*.cpp src/engine/*.cpp src/*.cpp
 
-.PHONY: all blueberry clean makedir
+.PHONY: all iris clean makedir
 
-all: blueberry
+all: iris
 
-blueberry: makedir
-	@$(CXX) $(CXXFLAGS) $(SRC) -o bin/blueberry.exe
+iris: makedir
+	@$(CXX) $(CXXFLAGS) $(SRC) -o bin/iris.exe
 
 clean: makedir
 	@rm -rf bin
@@ -32,4 +36,4 @@ clean: makedir
 makedir:
 	@mkdir -p bin
 
-.DEFAULT_GOAL := blueberry
+.DEFAULT_GOAL := iris
