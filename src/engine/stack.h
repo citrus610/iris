@@ -2,6 +2,7 @@
 
 #include "pv.h"
 #include "eval.h"
+#include "history.h"
 
 namespace stack
 {
@@ -12,6 +13,7 @@ struct Entry
     u16 move = move::NONE;
     i32 eval = eval::score::NONE;
     u16 killer = move::NONE;
+    history::cont::Entry* conthist = nullptr;
 };
 
 class Data

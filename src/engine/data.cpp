@@ -18,6 +18,7 @@ void Data::clear()
 void Data::make(const u16& move)
 {
     this->stack[this->ply].move = move;
+    this->stack[this->ply].conthist = &this->history.cont.get_entry(this->board, move);
 
     this->board.make(move);
     this->ply += 1;
@@ -32,6 +33,7 @@ void Data::unmake(const u16& move)
 void Data::make_null()
 {
     this->stack[this->ply].move = move::NONE;
+    this->stack[this->ply].conthist = nullptr;
 
     this->board.make_null();
     this->ply += 1;

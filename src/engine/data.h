@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stack.h"
 #include "history.h"
+#include "stack.h"
 
 class Data
 {
