@@ -10,7 +10,7 @@ namespace history
 
 inline i16 get_bonus(i32 depth)
 {
-    return std::min(depth * tune::HS_BONUS_COEF + tune::HS_BONUS_BIAS, tune::HS_BONUS_MAX);
+    return std::min(depth * tune::HS_BONUS_COEF + tune::HS_BONUS_BIAS, i32(tune::HS_BONUS_MAX));
 };
 
 template <i16 MAX>

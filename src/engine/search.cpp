@@ -320,7 +320,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         i32 reduction =
             tune::NMP_REDUCTION +
             depth / tune::NMP_DIVISOR_DEPTH +
-            std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, tune::NMP_REDUCTION_EVAL_MAX);
+            std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, i32(tune::NMP_REDUCTION_EVAL_MAX));
         
         // Makes null move
         data.make_null();

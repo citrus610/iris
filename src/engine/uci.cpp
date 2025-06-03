@@ -170,6 +170,8 @@ std::optional<Setoption> setoption(std::string in)
         if (value != nullptr) {
             value->value = std::stoi(tokens[4]);
         }
+
+        tune::init();
     }
 
     return option;

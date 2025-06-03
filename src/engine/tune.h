@@ -16,7 +16,7 @@ public:
 public:
     Value(std::string name, i32 value, i32 min, i32 max, i32 step, bool tunable);
 public:
-    inline operator int () { return this->value; };
+    inline operator i32 () { return this->value; };
 };
 
 inline std::vector<Value*> values;
