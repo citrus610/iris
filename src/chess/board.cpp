@@ -111,6 +111,8 @@ void Board::set_fen(const std::string& fen)
     // Sets move count
     this->halfmove = std::stoi(str_halfmove);
     this->ply = std::stoi(str_fullmove) * 2 - 2 + this->color;
+
+    assert(this->hash = this->get_hash_slow());
 };
 
 std::string Board::get_fen()
@@ -209,6 +211,33 @@ u64 Board::get_attackers(i8 square, u64 occupied)
         (attack::get_king(square) & this->pieces[piece::type::KING]);
 };
 
+u64 Board::get_hash_slow()
+{
+    u64 result = 0ULL;
+
+    for (i8 square = 0; square < 64; ++square) {
+        const auto piece = this->get_piece_at(square);
+
+        if (piece != piece::NONE) {
+            result ^= zobrist::get_piece(piece, square);
+        }
+    }
+
+    if (this->color == color::WHITE) {
+        result ^= zobrist::get_color();
+    }
+
+    if (this->castling) {
+        result ^= zobrist::get_castling(this->castling);
+    }
+
+    if (this->enpassant != square::NONE) {
+        result ^= zobrist::get_enpassant(square::get_file(this->enpassant));
+    }
+
+    return result;
+};
+
 bool Board::is_draw(i32 search_ply)
 {
     return this->is_draw_insufficient() || this->is_draw_repitition(search_ply) || this->is_draw_fifty_move();
@@ -219,7 +248,7 @@ bool Board::is_draw_repitition(i32 search_ply)
     i32 count = 0;
     i32 size = static_cast<i32>(this->history.size());
 
-    for (i32 i = 2; i < this->halfmove + 2; i += 2) {
+    for (i32 i = 2; i < this->halfmove + 2 && i <= size; i += 2) {
         if (this->history[size - i].hash != this->hash) {
             continue;
         }
@@ -649,6 +678,9 @@ void Board::make(u16 move)
 
     // Update masks
     this->update_masks();
+
+    // Checks hash
+    assert(this->hash == this->get_hash_slow());
 };
 
 void Board::unmake(u16 move)
@@ -724,6 +756,9 @@ void Board::unmake(u16 move)
     else if (undo.captured != piece::type::NONE) {
         this->place(undo.captured, !this->color, move_to);
     }
+
+    // Checks hash
+    assert(this->hash == this->get_hash_slow());
 };
 
 void Board::make_null()
