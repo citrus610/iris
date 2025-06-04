@@ -185,6 +185,7 @@ namespace uci::print
 void option()
 {
     std::cout << "option name Hash type spin default 16 min 1 max 128" << std::endl;
+    std::cout << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 
     if constexpr (!tune::TUNING) {
         return;
@@ -215,7 +216,7 @@ void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull,
 
     std::cout << "nodes " << nodes << " ";
 
-    std::cout << "nps " << (nodes * 1000 / std::max(time, 1ULL)) << " ";
+    std::cout << "nps " << (nodes * 1000 / std::max(u64(time), u64(1))) << " ";
 
     std::cout << "hashfull " << hashfull <<  " ";
 

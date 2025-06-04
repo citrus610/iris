@@ -44,9 +44,6 @@ inline void test()
     u64 time = 0;
 
     for (const auto& test : set) {
-        std::cout << std::endl;
-        std::cout << test << std::endl;
-
         auto board = Board(test);
         auto go = uci::parse::Go {
             .depth = 16,
@@ -56,7 +53,7 @@ inline void test()
             .infinite = true,
         };
 
-        engine.search(board, go);
+        engine.search<true>(board, go);
         engine.join();
 
         nodes += engine.nodes;
@@ -65,8 +62,7 @@ inline void test()
         engine.clear();
     }
 
-    std::cout << std::endl;
-    std::cout << "bench: " << (nodes * 1000 / time) << " nps" << std::endl;
+    std::cout << nodes << " nodes " << (nodes * 1000 / time) << " nps" << std::endl;
 };
 
 };
