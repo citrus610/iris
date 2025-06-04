@@ -23,6 +23,36 @@ void Engine::set(uci::parse::Setoption uci_setoption)
     this->table.init(uci_setoption.hash);
 };
 
+bool Engine::stop()
+{
+    if (this->thread == nullptr) {
+        return false;
+    }
+
+    this->running.clear();
+
+    return this->join();
+};
+
+bool Engine::join()
+{
+    if (this->thread == nullptr) {
+        return false;
+    }
+
+    if (!this->thread->joinable()) {
+        return false;
+    }
+
+    this->thread->join();
+
+    delete this->thread;
+    this->thread = nullptr;
+
+    return true;
+};
+
+template <bool BENCH>
 bool Engine::search(Board uci_board, uci::parse::Go uci_go)
 {
     if (this->running.test() || this->thread != nullptr) {
@@ -72,15 +102,17 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             }
 
             // Prints infos
-            uci::print::info(
-                i,
-                data.seldepth,
-                score,
-                data.nodes,
-                time_2 - time_1,
-                this->table.hashfull(),
-                pv_history.back()
-            );
+            if constexpr (!BENCH) {
+                uci::print::info(
+                    i,
+                    data.seldepth,
+                    score,
+                    data.nodes,
+                    time_2 - time_1,
+                    this->table.hashfull(),
+                    pv_history.back()
+                );
+            };
 
             // Saves search stats
             this->nodes += data.nodes;
@@ -102,37 +134,10 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         }
 
         // Prints best move
-        uci::print::best(pv_history.back()[0]);
+        if constexpr (!BENCH) {
+            uci::print::best(pv_history.back()[0]);
+        };
     }, uci_board, uci_go);
-
-    return true;
-};
-
-bool Engine::stop()
-{
-    if (this->thread == nullptr) {
-        return false;
-    }
-
-    this->running.clear();
-
-    return this->join();
-};
-
-bool Engine::join()
-{
-    if (this->thread == nullptr) {
-        return false;
-    }
-
-    if (!this->thread->joinable()) {
-        return false;
-    }
-
-    this->thread->join();
-
-    delete this->thread;
-    this->thread = nullptr;
 
     return true;
 };
@@ -747,6 +752,9 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
     return best;
 };
+
+template bool Engine::search<true>(Board, uci::parse::Go);
+template bool Engine::search<false>(Board, uci::parse::Go);
 
 template i32 Engine::pvsearch<true>(Data&, i32, i32, i32);
 template i32 Engine::pvsearch<false>(Data&, i32, i32, i32);

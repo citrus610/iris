@@ -1,10 +1,16 @@
 #include "engine/search.h"
 #include "test/test.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     chess::init();
     search::init();
+
+    if (argc > 1 && std::string(argv[1]) == "bench") {
+        test::bench::test();
+
+        return 0;
+    }
 
     auto board = Board();
     auto setoption = uci::parse::Setoption();
@@ -103,12 +109,6 @@ int main()
             continue;
         }
 
-        if (tokens[0] == "bench") {
-            test::bench::test();
-
-            continue;
-        }
-
         if (tokens[0] == "go") {
             // Reads go infos
             auto uci_go = uci::parse::go(input);
@@ -124,7 +124,7 @@ int main()
             engine.stop();
 
             // Starts search thread
-            engine.search(board, go);
+            engine.search<false>(board, go);
 
             continue;
         }
