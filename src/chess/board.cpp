@@ -219,7 +219,7 @@ bool Board::is_draw_repitition(i32 search_ply)
     i32 count = 0;
     i32 size = static_cast<i32>(this->history.size());
 
-    for (i32 i = 2; i < this->halfmove + 2; i += 1) {
+    for (i32 i = 2; i < this->halfmove + 2; i += 2) {
         if (this->history[size - i].hash != this->hash) {
             continue;
         }
@@ -229,16 +229,6 @@ bool Board::is_draw_repitition(i32 search_ply)
         }
 
         count += 1;
-
-        if (count == 2) {
-            return true;
-        }
-    }
-
-    for (i32 i = size - 2; i >= 0 && i >= size - this->halfmove - 1; i -= 2) {
-        if (this->history[i].hash == this->hash) {
-            count += 1;
-        }
 
         if (count == 2) {
             return true;
