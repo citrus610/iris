@@ -64,9 +64,10 @@ public:
     i8 get_king_square(i8 color);
     i8 get_captured_type(u16 move);
     u64 get_attackers(i8 square, u64 occupied);
+    u64 get_hash_slow();
 public:
-    bool is_draw();
-    bool is_draw_repitition();
+    bool is_draw(i32 search_ply = 0);
+    bool is_draw_repitition(i32 search_ply = 0);
     bool is_draw_fifty_move();
     bool is_draw_insufficient();
     bool is_square_attacked(i8 square, i8 color, u64 occupied);
