@@ -1,4 +1,11 @@
-CXX = g++
+CXX ?= g++
+EXE ?= iris
+
+ifeq ($(OS), Windows_NT)
+	SUFFIX := .exe
+else
+	SUFFIX :=
+endif
 
 ifeq ($(PROF), true)
 CXXPROF += -pg -no-pie
@@ -20,14 +27,15 @@ ifeq ($(PEXT), true)
 CXXFLAGS += -DUSE_PEXT
 endif
 
-SRC = src/chess/*.cpp src/engine/*.cpp src/*.cpp
+SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
+EXE := $(EXE)$(SUFFIX)
 
 .PHONY: all iris clean makedir
 
 all: iris
 
 iris: makedir
-	@$(CXX) $(CXXFLAGS) $(SRC) -o bin/iris.exe
+	@$(CXX) $(CXXFLAGS) $(SRC) -o bin/$(EXE)
 
 clean: makedir
 	@rm -rf bin
