@@ -14,6 +14,7 @@ i32 get(Board& board)
     score += eval::get_king_defense(board);
     score += eval::get_bishop_pair(board);
     score += eval::get_pawn_structure(board);
+    score += eval::get_threat(board);
 
     // Gets midgame and engame values
     i32 midgame = score::get_midgame(score);
@@ -223,6 +224,39 @@ i32 get_pawn_structure(Board& board)
     }
 
     return pawn_passed[0] - pawn_passed[1];
+};
+
+i32 get_threat(Board& board)
+{
+    i32 threat = 0;
+
+    const u64 pawns = board.get_pieces(piece::type::PAWN);
+    const u64 knights = board.get_pieces(piece::type::KNIGHT);
+    const u64 bishops = board.get_pieces(piece::type::BISHOP);
+    const u64 rooks = board.get_pieces(piece::type::ROOK);
+    const u64 queens = board.get_pieces(piece::type::QUEEN);
+
+    const u64 white = board.get_colors(color::WHITE);
+    const u64 black = board.get_colors(color::BLACK);
+
+    // Pawn threat
+    const u64 attack_pawn_white = attack::get_pawn_span<color::WHITE>(pawns & white);
+    const u64 attack_pawn_black = attack::get_pawn_span<color::BLACK>(pawns & black);
+
+    const i32 threat_pawn_minor_white = bitboard::get_count(attack_pawn_white & (knights | bishops) & black);
+    const i32 threat_pawn_minor_black = bitboard::get_count(attack_pawn_black & (knights | bishops) & white);
+
+    const i32 threat_pawn_rook_white = bitboard::get_count(attack_pawn_white & rooks & black);
+    const i32 threat_pawn_rook_black = bitboard::get_count(attack_pawn_black & rooks & white);
+
+    const i32 threat_pawn_queen_white = bitboard::get_count(attack_pawn_white & queens & black);
+    const i32 threat_pawn_queen_black = bitboard::get_count(attack_pawn_black & queens & white);
+
+    threat += (threat_pawn_minor_white - threat_pawn_minor_black) * eval::DEFAULT.threat_pawn[0];
+    threat += (threat_pawn_rook_white - threat_pawn_rook_black) * eval::DEFAULT.threat_pawn[1];
+    threat += (threat_pawn_queen_white - threat_pawn_queen_black) * eval::DEFAULT.threat_pawn[2];
+
+    return threat;
 };
 
 i32 get_scale(Board& board, i32 eval)

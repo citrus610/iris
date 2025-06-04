@@ -74,6 +74,9 @@ struct Weight
     i32 bishop_pair;
 
     i32 pawn_passed[8];
+    
+    i32 threat_pawn[3];
+    i32 threat_minor[2];
 
     i32 tempo;
 };
@@ -170,6 +173,13 @@ constexpr Weight MG = Weight {
 
     .pawn_passed = {
         0, 0, -5, -10, 10, 15, 25, 0
+    },
+
+    .threat_pawn = {
+        50, 100, 50
+    },
+    .threat_minor = {
+        40, 25
     }
 };
 
@@ -265,6 +275,13 @@ constexpr Weight EG = Weight {
 
     .pawn_passed = {
         0, 15, 20, 50, 75, 100, 150, 0
+    },
+
+    .threat_pawn = {
+        20, -35, -15
+    },
+    .threat_minor = {
+        0, 5
     }
 };
 
@@ -310,6 +327,14 @@ constexpr Weight DEFAULT = [] {
         SW(pawn_passed[i], w, MG, EG);
     }
 
+    for (i32 i = 0; i < 3; ++i) {
+        SW(threat_pawn[i], w, MG, EG);
+    }
+
+    for (i32 i = 0; i < 2; ++i) {
+        SW(threat_minor[i], w, MG, EG);
+    }
+
     w.tempo = 20;
 
     return w;
@@ -328,6 +353,8 @@ i32 get_king_defense(Board& board);
 i32 get_bishop_pair(Board& board);
 
 i32 get_pawn_structure(Board& board);
+
+i32 get_threat(Board& board);
 
 i32 get_scale(Board& board, i32 eval);
 
