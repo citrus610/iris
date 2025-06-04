@@ -34,8 +34,6 @@ inline std::vector<std::string> set = {
 
 inline void test()
 {
-    std::cout << "BENCH TEST" << std::endl;
-
     auto engine = search::Engine();
     engine.set({ .hash = 16 });
     engine.clear();
