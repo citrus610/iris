@@ -220,7 +220,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Early stop conditions
     if (!is_root) {
         // Checks draw
-        if (data.board.is_draw()) {
+        if (data.board.is_draw(data.ply)) {
             return eval::score::DRAW;
         }
 
@@ -558,7 +558,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     data.seldepth = std::max(data.seldepth, data.ply);
 
     // Checks draw
-    if (data.board.is_draw()) {
+    if (data.board.is_draw(data.ply)) {
         return eval::score::DRAW;
     }
 

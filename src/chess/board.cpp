@@ -209,15 +209,31 @@ u64 Board::get_attackers(i8 square, u64 occupied)
         (attack::get_king(square) & this->pieces[piece::type::KING]);
 };
 
-bool Board::is_draw()
+bool Board::is_draw(i32 search_ply)
 {
-    return this->is_draw_insufficient() || this->is_draw_repitition() || this->is_draw_fifty_move();
+    return this->is_draw_insufficient() || this->is_draw_repitition(search_ply) || this->is_draw_fifty_move();
 };
 
-bool Board::is_draw_repitition()
+bool Board::is_draw_repitition(i32 search_ply)
 {
     i32 count = 0;
     i32 size = static_cast<i32>(this->history.size());
+
+    for (i32 i = 2; i < this->halfmove + 2; i += 1) {
+        if (this->history[size - i].hash != this->hash) {
+            continue;
+        }
+
+        if (i <= search_ply) {
+            return true;
+        }
+
+        count += 1;
+
+        if (count == 2) {
+            return true;
+        }
+    }
 
     for (i32 i = size - 2; i >= 0 && i >= size - this->halfmove - 1; i -= 2) {
         if (this->history[i].hash == this->hash) {
