@@ -61,12 +61,12 @@ i32 get_material(Board& board)
 
     i32 material = 0;
 
-    material += dt_pawn * eval::DEFAULT.material_pawn;
-    material += dt_knight * eval::DEFAULT.material_knight;
-    material += dt_bishop * eval::DEFAULT.material_bishop;
-    material += dt_rook * eval::DEFAULT.material_rook;
-    material += dt_queen * eval::DEFAULT.material_queen;
-    material += dt_king * eval::DEFAULT.material_king;
+    material += dt_pawn * eval::DEFAULT.material[0];
+    material += dt_knight * eval::DEFAULT.material[1];
+    material += dt_bishop * eval::DEFAULT.material[2];
+    material += dt_rook * eval::DEFAULT.material[3];
+    material += dt_queen * eval::DEFAULT.material[4];
+    material += dt_king * eval::DEFAULT.material[5];
 
     return material;
 };
@@ -82,12 +82,10 @@ i32 get_table(Board& board)
             continue;
         }
 
-        i8 piece_type = piece::get_type(piece);
-        i8 piece_color = piece::get_color(piece);
+        i8 type = piece::get_type(piece);
+        i8 color = piece::get_color(piece);
 
-        i8 index = piece_color == color::WHITE ? square : square::get_relative(square, color::BLACK);
-
-        table[piece_color] += eval::DEFAULT.table[piece_type][index];
+        table[color] += eval::DEFAULT.table[color][type][square];
     }
 
     return table[0] - table[1];
