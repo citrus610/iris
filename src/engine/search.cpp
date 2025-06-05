@@ -425,7 +425,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
         if (legals > 1 + is_root * 2 &&
             depth >= tune::LMR_DEPTH &&
-            is_quiet) {
+            picker.get_stage() > order::Stage::KILLER) {
             // Gets reduction count
             i32 reduction = tune::LMR_TABLE[depth][legals];
 
@@ -435,7 +435,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             // Scouts
             score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_reduced);
 
-            // Failed high
+            // Failed
             if (score > alpha && depth_reduced < depth_next) {
                 score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_next);
             }
