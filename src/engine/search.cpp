@@ -307,6 +307,18 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     data.stack[data.ply].eval = eval_static;
 
+    // Razoring
+    if (!PV &&
+        depth <= tune::RAZOR_DEPTH &&
+        eval + tune::RAZOR_COEF * depth < alpha) {
+        // Scouts with qsearch
+        i32 score = this->qsearch<false>(data, alpha, beta);
+
+        if (score <= alpha) {
+            return score;
+        }
+    }
+
     // Reverse futility pruning
     if (!PV &&
         depth <= tune::RFP_DEPTH &&
