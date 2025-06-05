@@ -342,6 +342,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
 
+    // Internal iterative reduction
+    if (depth >= tune::IIR_DEPTH && !table_move) {
+        depth -= 1;
+    }
+
     // Move loop
     loop:
 
