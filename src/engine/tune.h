@@ -34,6 +34,9 @@ inline std::vector<Value*> values;
 VALUE(AW_DEPTH, 4, 3, 6, 1, false)
 VALUE(AW_DELTA, 25, 10, 50, 10, true)
 
+VALUE(RAZOR_DEPTH, 6, 3, 10, 1, false)
+VALUE(RAZOR_COEF, 250, 100, 500, 20, true)
+
 VALUE(RFP_DEPTH, 8, 6, 12, 1, false)
 VALUE(RFP_COEF, 60, 20, 100, 20, true)
 
@@ -54,9 +57,9 @@ VALUE(SEEP_MARGIN_QS, -16, -250, 0, 20, true)
 VALUE(SEEP_MARGIN_QUIET, -80, -250, -50, 20, true)
 VALUE(SEEP_MARGIN_NOISY, -17, -50, -10, 10, true)
 
-VALUE(LMR_DEPTH, 3, 0, 0, 10, false)
-VALUE(LMR_COEF, 35, 25, 50, 20, true)
-VALUE(LMR_BIAS, 80, 50, 100, 20, true)
+VALUE(LMR_DEPTH, 3, 0, 0, 1, false)
+VALUE(LMR_COEF, 35, 25, 50, 5, true)
+VALUE(LMR_BIAS, 80, 50, 100, 5, true)
 
 VALUE(IIR_DEPTH, 4, 0, 0, 10, false)
 
