@@ -3,6 +3,7 @@ WIP UCI chess engine
 
 ## Thanks
 - Members of the MinusKelvin & Engine Programming discord server for helping me, they are very cool ❤️
+- [MinusKelvin](https://github.com/MinusKelvin) and [Analog Hors](https://github.com/analog-hors) for generously allowing me into their [Openbench](https://analoghors.pythonanywhere.com/) instance
 - Disservin's [chess-library](https://github.com/Disservin/chess-library) for helping me understand move generation, my move generation code is heavily influenced by theirs
 - [CPW](https://www.chessprogramming.org/Main_Page) for its resources
 - The following engines that I use as references:
