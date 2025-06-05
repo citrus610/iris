@@ -268,6 +268,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Resets killer move
     data.stack[data.ply + 1].killer = move::NONE;
 
+    // Improving
+    bool is_improving = false;
+
     // Static eval
     i32 eval = eval::score::NONE;
     i32 eval_static = eval::score::NONE;
@@ -306,6 +309,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     data.stack[data.ply].eval = eval_static;
+
+    // Improving
+    if (data.ply >= 2 && data.stack[data.ply - 2].eval != eval::score::NONE) {
+        is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
+    }
 
     // Reverse futility pruning
     if (!PV &&
@@ -385,7 +393,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         if (!is_root && best > -eval::score::MATE_FOUND) {
             // Late move pruning
             if (!picker.is_skipped() &&
-                legals >= depth * depth + tune::LMP_BASE) {
+                legals >= (depth * depth + tune::LMP_BASE) / (2 - is_improving)) {
                 picker.skip_quiets();
             }
 

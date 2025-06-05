@@ -179,6 +179,7 @@ i32 get_bishop_pair(Board& board)
 
 i32 get_pawn_structure(Board& board)
 {
+    // Passed pawns
     constexpr std::array<std::array<u64, 64>, 2> FORWARD_PASS = [] {
         std::array<std::array<u64, 64>, 2> result = { 0ULL };
 
@@ -212,8 +213,7 @@ i32 get_pawn_structure(Board& board)
 
         while (pawn_us)
         {
-            i8 sq = bitboard::get_lsb(pawn_us);
-            pawn_us = bitboard::get_pop_lsb(pawn_us);
+            i8 sq = bitboard::pop_lsb(pawn_us);
 
             if ((FORWARD_PASS[color][sq] & pawn_them) == 0) {
                 pawn_passed[color] += eval::DEFAULT.pawn_passed[rank::get_relative(square::get_rank(sq), color)];
