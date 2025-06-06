@@ -205,6 +205,13 @@ inline u64 Board::get_hash_pawn()
     return this->hash_pawn;
 };
 
+inline u64 Board::get_hash_non_pawn(i8 color)
+{
+    assert(color::is_valid(color));
+
+    return this->hash_non_pawn[color];
+};
+
 inline void Board::update_checkers()
 {
     const u64 occupied = this->get_occupied();

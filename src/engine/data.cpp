@@ -3,7 +3,6 @@
 Data::Data(const Board& board)
 {
     this->board = board;
-    this->history = history::Table();
     this->clear();
 };
 

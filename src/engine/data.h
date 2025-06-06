@@ -10,7 +10,7 @@ public:
     i32 ply;
     stack::Data stack;
 public:
-    history::Table history;
+    history::Table history {};
 public:
     u64 nodes;
     i32 seldepth;
