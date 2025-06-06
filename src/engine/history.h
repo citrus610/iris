@@ -93,7 +93,7 @@ constexpr usize MASK = SIZE - 1;
 
 inline i16 get_bonus(i32 delta, i32 depth)
 {
-    return std::clamp(delta * depth, -MAX / 4, MAX / 4);
+    return std::clamp(delta * depth * 16, -MAX / 4, MAX / 4);
 };
 
 class Table
