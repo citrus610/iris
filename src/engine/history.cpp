@@ -105,21 +105,6 @@ void Table::update(Data& data, const u16& move, i32 offset, i16 bonus)
 
 };
 
-namespace history::corr
-{
-
-i16& Table::get(const i8 color, const u64& hash)
-{
-    return this->data[color][hash & MASK];
-};
-
-void Table::update(const i8 color, const u64& hash, i16 bonus)
-{
-    history::update<history::corr::MAX>(this->get(color, hash), bonus);
-};
-
-};
-
 namespace history
 {
 
@@ -131,20 +116,6 @@ i32 Table::get_score_quiet(Data& data, const u16& move)
 i32 Table::get_score_noisy(Data& data, const u16& move)
 {
     return this->noisy.get(data.board, move);
-};
-
-i32 Table::get_correction(Board& board)
-{
-    i32 correction = 0;
-
-    correction += i32(this->corr_pawn.get(board.get_color(), board.get_hash_pawn())) * tune::CORR_WEIGHT_PAWN;
-
-    return correction / history::corr::SCALE;
-};
-
-void Table::update_correction(const i8 color, const u64& hash, i16 bonus)
-{
-    this->corr_pawn.update(color, hash, bonus);
 };
 
 };

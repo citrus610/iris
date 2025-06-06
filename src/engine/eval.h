@@ -347,6 +347,4 @@ i32 get_threat(Board& board);
 
 i32 get_scale(Board& board, i32 eval);
 
-i32 get_adjusted(i32 eval, i32 correction, i32 halfmove);
-
 };

@@ -273,15 +273,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Static eval
     i32 eval = eval::score::NONE;
-    i32 eval_raw = eval::score::NONE;
+    i32 eval_static = eval::score::NONE;
 
     if (is_in_check) {
         data.stack[data.ply].eval = eval::score::NONE;
         goto loop;
     }
     else if (table_hit) {
-        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
-        eval = eval_raw;
+        eval_static = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval = eval_static;
 
         // Uses the node's score as a more accurate eval value
         if ((table_bound == transposition::bound::EXACT) ||
@@ -291,15 +291,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
     else {
-        eval_raw = eval::get(data.board);
-        eval = eval_raw;
+        eval_static = eval::get(data.board);
+        eval = eval_static;
 
         // Stores this eval into the table
         table_entry->set(
             data.board.get_hash(),
             move::NONE,
             eval::score::NONE,
-            eval_raw,
+            eval_static,
             depth,
             this->table.age,
             table_pv,
@@ -308,8 +308,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         );
     }
 
-    // Adjusts static eval
-    data.stack[data.ply].eval = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
+    data.stack[data.ply].eval = eval_static;
 
     // Improving
     if (data.ply >= 2 && data.stack[data.ply - 2].eval != eval::score::NONE) {
@@ -406,7 +405,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 !is_in_check &&
                 is_quiet &&
                 lmr_depth <= tune::FP_DEPTH &&
-                data.stack[data.ply].eval + lmr_depth * tune::FP_COEF + tune::FP_BIAS <= alpha) {
+                eval_static + lmr_depth * tune::FP_COEF + tune::FP_BIAS <= alpha) {
                 picker.skip_quiets();
                 continue;
             }
@@ -531,30 +530,17 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
 
-    // Gets bound
+    // Updates transposition table
     u8 bound =
         best >= beta ? transposition::bound::LOWER :
         best > alpha_old ? transposition::bound::EXACT :
         transposition::bound::UPPER;
 
-    // Updates correction history
-    if ((best_move == move::NONE || data.board.is_quiet(best_move)) &&
-        !is_in_check &&
-        !(bound == transposition::bound::LOWER && best <= data.stack[data.ply].eval) &&
-        !(bound == transposition::bound::UPPER && best >= data.stack[data.ply].eval)) {
-        // Gets correction bonus
-        const i16 bonus = history::corr::get_bonus(best - data.stack[data.ply].eval, depth);
-
-        // Updates
-        data.history.update_correction(data.board.get_color(), data.board.get_hash_pawn(), bonus);
-    }
-
-    // Updates transposition table
     table_entry->set(
         data.board.get_hash(),
         best_move,
         best,
-        eval_raw,
+        eval_static,
         depth,
         this->table.age,
         table_pv,
@@ -625,11 +611,11 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
     // Gets static eval
     i32 eval = eval::score::NONE;
-    i32 eval_raw = eval::score::NONE;
+    i32 eval_static = eval::score::NONE;
 
     if (!is_in_check) {
-        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
-        eval = eval_raw;
+        eval_static = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval = eval_static;
 
         if (table_hit) {
             // Uses the node's score as a more accurate eval value
@@ -645,7 +631,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
                 data.board.get_hash(),
                 move::NONE,
                 eval::score::NONE,
-                eval_raw,
+                eval_static,
                 0,
                 this->table.age,
                 table_pv,
@@ -655,8 +641,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         }
     }
 
-    // Adjusts static eval
-    data.stack[data.ply].eval = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
+    data.stack[data.ply].eval = eval_static;
 
     // Best score
     i32 best = -eval::score::INFINITE;
@@ -770,7 +755,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         data.board.get_hash(),
         best_move,
         best,
-        eval_raw,
+        eval_static,
         0,
         this->table.age,
         table_pv,
