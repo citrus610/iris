@@ -112,7 +112,10 @@ void Board::set_fen(const std::string& fen)
     this->halfmove = std::stoi(str_halfmove);
     this->ply = std::stoi(str_fullmove) * 2 - 2 + this->color;
 
+    // Sets hash
     assert(this->hash = this->get_hash_slow());
+
+    this->hash_pawn = this->get_hash_pawn_slow();
 };
 
 std::string Board::get_fen()
@@ -233,6 +236,21 @@ u64 Board::get_hash_slow()
 
     if (this->enpassant != square::NONE) {
         result ^= zobrist::get_enpassant(square::get_file(this->enpassant));
+    }
+
+    return result;
+};
+
+u64 Board::get_hash_pawn_slow()
+{
+    u64 result = 0ULL;
+
+    for (i8 square = 0; square < 64; ++square) {
+        const auto piece = this->get_piece_at(square);
+
+        if (piece == piece::WHITE_PAWN || piece == piece::BLACK_PAWN) {
+            result ^= zobrist::get_piece(piece, square);
+        }
     }
 
     return result;
@@ -536,6 +554,7 @@ void Board::make(u16 move)
     // Saves info
     this->history.push_back(Undo {
         .hash = this->hash,
+        .hash_pawn = this->hash_pawn,
         .castling = this->castling,
         .enpassant = this->enpassant,
         .captured = captured,
@@ -567,6 +586,10 @@ void Board::make(u16 move)
 
         // Updates hash
         this->hash ^= zobrist::get_piece(piece::create(captured, !this->color), move_to);
+
+        if (captured == piece::type::PAWN) {
+            this->hash_pawn ^= zobrist::get_piece(piece::create(captured, !this->color), move_to);
+        }
 
         // Removes castling right if a rook is captured
         if (captured == piece::type::ROOK) {
@@ -647,6 +670,8 @@ void Board::make(u16 move)
 
         this->hash ^= zobrist::get_piece(piece::create(piece_type, this->color), move_from);
         this->hash ^= zobrist::get_piece(piece::create(promotion, this->color), move_to);
+
+        this->hash_pawn ^= zobrist::get_piece(piece::create(piece_type, this->color), move_from);
     }
     else {
         assert(this->get_type_at(move_to) == piece::type::NONE);
@@ -658,6 +683,11 @@ void Board::make(u16 move)
 
         this->hash ^= zobrist::get_piece(piece, move_from);
         this->hash ^= zobrist::get_piece(piece, move_to);
+
+        if (piece_type == piece::type::PAWN) {
+            this->hash_pawn ^= zobrist::get_piece(piece, move_from);
+            this->hash_pawn ^= zobrist::get_piece(piece, move_to);
+        }
     }
 
     // Captures enpassant pawn
@@ -670,6 +700,7 @@ void Board::make(u16 move)
         this->remove(piece::type::PAWN, !this->color, enpassant_square);
 
         this->hash ^= zobrist::get_piece(piece::create(piece::type::PAWN, !this->color), enpassant_square);
+        this->hash_pawn ^= zobrist::get_piece(piece::create(piece::type::PAWN, !this->color), enpassant_square);
     }
 
     // Updates color
@@ -681,6 +712,7 @@ void Board::make(u16 move)
 
     // Checks hash
     assert(this->hash == this->get_hash_slow());
+    assert(this->hash_pawn == this->get_hash_pawn_slow());
 };
 
 void Board::unmake(u16 move)
@@ -690,6 +722,7 @@ void Board::unmake(u16 move)
     this->history.pop_back();
 
     this->hash = undo.hash;
+    this->hash_pawn = undo.hash_pawn;
     this->castling = undo.castling;
     this->enpassant = undo.enpassant;
     this->halfmove = undo.halfmove;
@@ -759,6 +792,7 @@ void Board::unmake(u16 move)
 
     // Checks hash
     assert(this->hash == this->get_hash_slow());
+    assert(this->hash_pawn == this->get_hash_pawn_slow());
 };
 
 void Board::make_null()
@@ -766,6 +800,7 @@ void Board::make_null()
     // Saves info
     this->history.push_back(Undo {
         .hash = this->hash,
+        .hash_pawn = this->hash_pawn,
         .castling = this->castling,
         .enpassant = this->enpassant,
         .captured = piece::type::NONE,
@@ -796,6 +831,7 @@ void Board::unmake_null()
     this->history.pop_back();
 
     this->hash = undo.hash;
+    this->hash_pawn = undo.hash_pawn;
     this->castling = undo.castling;
     this->enpassant = undo.enpassant;
     this->halfmove = undo.halfmove;

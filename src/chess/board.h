@@ -11,6 +11,7 @@ constexpr i32 MAX_PLY = 256;
 struct Undo
 {
     u64 hash;
+    u64 hash_pawn;
     i8 castling;
     i8 enpassant;
     i8 captured;
@@ -37,6 +38,8 @@ private:
     u64 blockers[2];
 private:
     u64 hash;
+    u64 hash_pawn;
+private:
     std::vector<Undo> history;
 public:
     Board(const std::string& fen = STARTPOS);
@@ -59,12 +62,14 @@ public:
     u64 get_checkers();
     u64 get_blockers(i8 color);
     u64 get_hash();
+    u64 get_hash_pawn();
     std::string get_fen();
 public:
     i8 get_king_square(i8 color);
     i8 get_captured_type(u16 move);
     u64 get_attackers(i8 square, u64 occupied);
     u64 get_hash_slow();
+    u64 get_hash_pawn_slow();
 public:
     bool is_draw(i32 search_ply = 0);
     bool is_draw_repitition(i32 search_ply = 0);
@@ -189,6 +194,11 @@ inline u64 Board::get_blockers(i8 color)
 inline u64 Board::get_hash()
 {
     return this->hash;
+};
+
+inline u64 Board::get_hash_pawn()
+{
+    return this->hash_pawn;
 };
 
 inline void Board::update_checkers()
