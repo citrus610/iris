@@ -82,6 +82,31 @@ public:
 
 };
 
+namespace history::corr
+{
+
+constexpr i32 MAX = 16384;
+constexpr i32 SCALE = 8192;
+
+constexpr usize SIZE = 1ULL << 14;
+constexpr usize MASK = SIZE - 1;
+
+inline i16 get_bonus(i32 delta, i32 depth)
+{
+    return std::clamp(delta * depth, -MAX / 4, MAX / 4);
+};
+
+class Table
+{
+private:
+    i16 data[2][SIZE] = { 0 };
+public:
+    i16& get(const i8 color, const u64& hash);
+    void update(const i8 color, const u64& hash, i16 bonus);
+};
+
+};
+
 namespace history
 {
 
@@ -91,9 +116,13 @@ public:
     history::quiet::Table quiet = {};
     history::noisy::Table noisy = {};
     history::cont::Table cont = {};
+    history::corr::Table corr_pawn = {};
 public:
     i32 get_score_quiet(Data& data, const u16& move);
     i32 get_score_noisy(Data& data, const u16& move);
+    i32 get_correction(Board& board);
+public:
+    void update_correction(const i8 color, const u64& hash, i16 bonus);
 };
 
 };
