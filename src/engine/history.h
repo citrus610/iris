@@ -86,7 +86,7 @@ namespace history::corr
 {
 
 constexpr i32 MAX = 16384;
-constexpr i32 SCALE = 2048;
+constexpr i32 SCALE = 8192;
 constexpr i32 BONUS_MAX = 4096;
 constexpr i32 BONUS_SCALE = 8;
 
