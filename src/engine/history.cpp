@@ -110,6 +110,9 @@ namespace history::corr
 
 i16& Table::get(const i8 color, const u64& hash)
 {
+    assert(color::is_valid(color));
+    assert((hash & MASK) < SIZE);
+
     return this->data[color][hash & MASK];
 };
 
@@ -138,13 +141,17 @@ i32 Table::get_correction(Board& board)
     i32 correction = 0;
 
     correction += i32(this->corr_pawn.get(board.get_color(), board.get_hash_pawn())) * tune::CORR_WEIGHT_PAWN;
+    correction += i32(this->corr_non_pawn[color::WHITE].get(board.get_color(), board.get_hash_non_pawn(color::WHITE))) * tune::CORR_WEIGHT_NON_PAWN;
+    correction += i32(this->corr_non_pawn[color::BLACK].get(board.get_color(), board.get_hash_non_pawn(color::BLACK))) * tune::CORR_WEIGHT_NON_PAWN;
 
     return correction / history::corr::SCALE;
 };
 
-void Table::update_correction(const i8 color, const u64& hash, i16 bonus)
+void Table::update_correction(Board& board, i16 bonus)
 {
-    this->corr_pawn.update(color, hash, bonus);
+    this->corr_pawn.update(board.get_color(), board.get_hash_pawn(), bonus);
+    this->corr_non_pawn[color::WHITE].update(board.get_color(), board.get_hash_non_pawn(color::WHITE), bonus);
+    this->corr_non_pawn[color::BLACK].update(board.get_color(), board.get_hash_non_pawn(color::BLACK), bonus);
 };
 
 };

@@ -548,7 +548,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         const i16 bonus = history::corr::get_bonus(best - eval_static, depth);
 
         // Updates
-        data.history.update_correction(data.board.get_color(), data.board.get_hash_pawn(), bonus);
+        data.history.update_correction(data.board, bonus);
     }
 
     // Updates transposition table

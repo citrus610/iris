@@ -12,6 +12,7 @@ struct Undo
 {
     u64 hash;
     u64 hash_pawn;
+    u64 hash_non_pawn[2];
     i8 castling;
     i8 enpassant;
     i8 captured;
@@ -39,6 +40,7 @@ private:
 private:
     u64 hash;
     u64 hash_pawn;
+    u64 hash_non_pawn[2];
 private:
     std::vector<Undo> history;
 public:
@@ -63,6 +65,7 @@ public:
     u64 get_blockers(i8 color);
     u64 get_hash();
     u64 get_hash_pawn();
+    u64 get_hash_non_pawn(i8 color);
     std::string get_fen();
 public:
     i8 get_king_square(i8 color);
@@ -70,6 +73,7 @@ public:
     u64 get_attackers(i8 square, u64 occupied);
     u64 get_hash_slow();
     u64 get_hash_pawn_slow();
+    u64 get_hash_non_pawn_slow(i8 color);
 public:
     bool is_draw(i32 search_ply = 0);
     bool is_draw_repitition(i32 search_ply = 0);
@@ -199,6 +203,13 @@ inline u64 Board::get_hash()
 inline u64 Board::get_hash_pawn()
 {
     return this->hash_pawn;
+};
+
+inline u64 Board::get_hash_non_pawn(i8 color)
+{
+    assert(color::is_valid(color));
+
+    return this->hash_non_pawn[color];
 };
 
 inline void Board::update_checkers()

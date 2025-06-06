@@ -119,12 +119,13 @@ public:
     history::noisy::Table noisy = {};
     history::cont::Table cont = {};
     history::corr::Table corr_pawn = {};
+    history::corr::Table corr_non_pawn[2] = {};
 public:
     i32 get_score_quiet(Data& data, const u16& move);
     i32 get_score_noisy(Data& data, const u16& move);
     i32 get_correction(Board& board);
 public:
-    void update_correction(const i8 color, const u64& hash, i16 bonus);
+    void update_correction(Board& board, i16 bonus);
 };
 
 };
