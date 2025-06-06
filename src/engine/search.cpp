@@ -72,11 +72,14 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         // Inits search data
         auto data = Data(board);
 
-        // Storing best pv lines found in each iteration
+        // Search history
         std::vector<pv::Line> pv_history = {};
-
-        // Preivous search score
         i32 score_old = -eval::score::INFINITE;
+        i32 average = eval::score::NONE;
+
+        // Search stability
+        i32 stability_eval = 0;
+        i32 stability_pv = 0;
 
         // Iterative deepening
         for (i32 i = 1; i < go.depth; ++i) {
@@ -123,8 +126,32 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 continue;
             }
 
+            // Updates search stability stats
+            // Eval stability
+            average = average == eval::score::NONE ? score : (average + score) / 2;
+
+            if (std::abs(score - average) <= tune::TS_EVAL_WINDOW) {
+                stability_eval = std::min(stability_eval + 1, 10);
+            }
+            else {
+                stability_eval = 0;
+            }
+
+            // PV stability
+            if (pv_history.size() > 1) {
+                u16 move_new = pv_history[pv_history.size() - 1][0];
+                u16 move_old = pv_history[pv_history.size() - 2][0];
+
+                if (move_new == move_old) {
+                    stability_pv = std::min(stability_pv + 1, 10);
+                }
+                else {
+                    stability_pv = 0;
+                }
+            }
+
             // Checks time
-            if (!go.infinite && this->timer.is_over_soft()) {
+            if (!go.infinite && this->timer.is_over_soft(stability_eval, stability_pv)) {
                 this->running.clear();
             }
 

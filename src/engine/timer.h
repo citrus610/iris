@@ -17,7 +17,7 @@ public:
     void set(uci::parse::Go go, i8 color);
     void clear();
 public:
-    bool is_over_soft();
+    bool is_over_soft(i32 stability_eval, i32 stability_pv);
     bool is_over_hard();
 };
 

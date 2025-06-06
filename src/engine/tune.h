@@ -70,6 +70,8 @@ VALUE(HS_BONUS_MAX, 985, 500, 2500, 100, true)
 VALUE(CORR_WEIGHT_PAWN, 64, 16, 128, 16, true)
 VALUE(CORR_WEIGHT_NON_PAWN, 32, 16, 128, 16, true)
 
+VALUE(TS_EVAL_WINDOW, 15, 10, 25, 1, false)
+
 inline i32 LMR_TABLE[MAX_PLY][move::MAX];
 
 void init();
