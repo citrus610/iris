@@ -267,4 +267,9 @@ i32 get_scale(Board& board, i32 eval)
     return SCALE_MAX - x * x;
 };
 
+i32 get_adjusted(i32 eval, i32 correction, i32 halfmove)
+{
+    return std::clamp(eval * (200 - halfmove) / 200 + correction, -score::MATE_FOUND + 1, score::MATE_FOUND - 1);
+};
+
 };
