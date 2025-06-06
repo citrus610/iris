@@ -86,14 +86,16 @@ namespace history::corr
 {
 
 constexpr i32 MAX = 16384;
-constexpr i32 SCALE = 8192;
+constexpr i32 SCALE = 2048;
+constexpr i32 BONUS_MAX = 4096;
+constexpr i32 BONUS_SCALE = 8;
 
 constexpr usize SIZE = 1ULL << 14;
 constexpr usize MASK = SIZE - 1;
 
 inline i16 get_bonus(i32 delta, i32 depth)
 {
-    return std::clamp(delta * depth * 16, -MAX / 4, MAX / 4);
+    return std::clamp(delta * depth * BONUS_SCALE, -BONUS_MAX, BONUS_MAX);
 };
 
 class Table
