@@ -584,7 +584,7 @@ bool Board::has_upcomming_repetition(i32 search_ply)
         i8 from = move::get_from(move);
         i8 to = move::get_to(move);
 
-        if ((bitboard::get_between(from, to) | bitboard::create(to)) & this->get_occupied()) {
+        if (bitboard::get_between(from, to) & this->get_occupied()) {
             continue;
         }
 
