@@ -75,7 +75,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         // Storing best pv lines found in each iteration
         std::vector<pv::Line> pv_history = {};
 
-        // Preivous search score
+        // Previous search score
         i32 score_old = -eval::score::INFINITE;
 
         // Iterative deepening
