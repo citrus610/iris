@@ -442,6 +442,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
             reduction -= table_pv;
             reduction -= (data.board.get_checkers() != 0ULL);
+            reduction += !is_improving;
 
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next + 1);
