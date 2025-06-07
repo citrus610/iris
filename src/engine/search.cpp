@@ -192,15 +192,6 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Gets is root node
     const bool is_root = PV && data.ply == 0;
 
-    // Checks upcomming repetition
-    if (!is_root && alpha < eval::score::DRAW && data.board.has_upcomming_repetition(data.ply)) {
-        alpha = eval::score::DRAW;
-
-        if (alpha >= beta) {
-            return alpha;
-        }
-    }
-
     // Quiensence search
     if (depth <= 0) {
         return this->qsearch<PV>(data, alpha, beta);
@@ -227,6 +218,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         // Checks draw
         if (data.board.is_draw(data.ply)) {
             return eval::score::DRAW;
+        }
+
+        // Checks upcomming repetition
+        if (alpha < eval::score::DRAW && data.board.has_upcomming_repetition(data.ply)) {
+            alpha = eval::score::DRAW;
+
+            if (alpha >= beta) {
+                return alpha;
+            }
         }
 
         // Mate distance pruning
@@ -593,6 +593,15 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     data.stack[data.ply].pv.count = 0;
     data.nodes += 1;
     data.seldepth = std::max(data.seldepth, data.ply);
+
+    // Checks upcomming repetition
+    if (alpha < eval::score::DRAW && data.board.has_upcomming_repetition(data.ply)) {
+        alpha = eval::score::DRAW;
+
+        if (alpha >= beta) {
+            return alpha;
+        }
+    }
 
     // Checks draw
     if (data.board.is_draw(data.ply)) {

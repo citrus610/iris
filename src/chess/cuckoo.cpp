@@ -34,32 +34,23 @@ bool is_reversible(i8 type, i8 a, i8 b)
 
 void init()
 {
-    for (auto i = 0; i < 8192; ++i) {
-        TABLE[i] = 0ULL;
-        A[i] = square::NONE;
-        B[i] = square::NONE;
-    }
-
     for (i8 piece = piece::WHITE_KNIGHT; piece < 12; ++piece) {
-        for (i8 sq1 = 0; sq1 < 64; ++sq1) {
-            for (i8 sq2 = sq1 + 1; sq2 < 64; ++sq2) {
-                i8 a = sq1;
-                i8 b = sq2;
-
+        for (i8 a = 0; a < 64; ++a) {
+            for (i8 b = a + 1; b < 64; ++b) {
                 if (!is_reversible(piece::get_type(piece), a, b)) {
                     continue;
                 }
 
+                u16 move = move::get<move::type::NORMAL>(a, b);
                 u64 hash = zobrist::get_piece(piece, a) ^ zobrist::get_piece(piece, b) ^ zobrist::get_color();
                 u64 index = cuckoo::get_h1(hash);
 
                 while (true)
                 {
-                    std::swap(TABLE[index], hash);
-                    std::swap(A[index], a);
-                    std::swap(B[index], b);
+                    std::swap(cuckoo::HASH[index], hash);
+                    std::swap(cuckoo::MOVE[index], move);
 
-                    if (hash == 0ULL) {
+                    if (move == move::NONE) {
                         break;
                     }
 

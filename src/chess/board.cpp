@@ -556,33 +556,27 @@ bool Board::has_non_pawn(i8 color)
 
 bool Board::has_upcomming_repetition(i32 search_ply)
 {
-    i32 max = std::min(this->halfmove, static_cast<i32>(this->history.size()));
-
-    if (max < 3) {
-        return false;
-    }
-
-    u64 other = zobrist::get_color() ^ this->hash ^ this->history[this->history.size() - 1].hash;
+    const i32 size = static_cast<i32>(this->history.size());
+    const i32 max = std::min(this->halfmove, size);
 
     for (i32 i = 3; i <= max; i += 2) {
-        other ^= zobrist::get_color() ^ this->history[this->history.size() - i].hash ^ this->history[this->history.size() - i + 1].hash;
+        u64 hash = this->hash ^ this->history[size - i].hash;
+        u64 index = cuckoo::get_h1(hash);
 
-        if (other != 0ULL) {
+        if (cuckoo::HASH[index] != hash) {
+            index = cuckoo::get_h2(hash);
+        }
+
+        if (cuckoo::HASH[index] != hash) {
             continue;
         }
 
-        u64 differences = this->hash ^ this->history[this->history.size() - i].hash;
-        u64 index = cuckoo::get_h1(differences);
+        u16 move = cuckoo::MOVE[index];
 
-        if (cuckoo::TABLE[index] != differences) {
-            index = cuckoo::get_h2(differences);
+        i8 from = move::get_from(move);
+        i8 to = move::get_to(move);
 
-            if (cuckoo::TABLE[index] != differences) {
-                continue;
-            }
-        }
-
-        if (bitboard::get_between(cuckoo::A[index], cuckoo::B[index]) & this->get_occupied()) {
+        if ((bitboard::get_between(from, to) ^ bitboard::create(to)) & this->get_occupied()) {
             continue;
         }
 
@@ -590,8 +584,18 @@ bool Board::has_upcomming_repetition(i32 search_ply)
             return true;
         }
 
+        i8 piece = this->board[from];
+
+        if (piece == piece::NONE) {
+            piece = this->board[to];
+        }
+
+        if (piece == piece::NONE || piece::get_color(piece) != this->color) {
+            continue;
+        }
+
         for (i32 k = i + 4; k <= max; k += 2) {
-            if (this->history[this->history.size() - i].hash == this->history[this->history.size() - k].hash) {
+            if (this->history[size - k].hash == this->history[size - i].hash) {
                 return true;
             }
         }
