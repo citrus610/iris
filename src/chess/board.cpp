@@ -559,7 +559,15 @@ bool Board::has_upcomming_repetition(i32 search_ply)
     const i32 size = static_cast<i32>(this->history.size());
     const i32 max = std::min(this->halfmove, size);
 
+    u64 other = this->hash ^ this->history[size - 1].hash ^ zobrist::get_color();
+
     for (i32 i = 3; i <= max; i += 2) {
+        other ^= this->history[size - i].hash ^ this->history[size - i + 1].hash ^ zobrist::get_color();
+
+        if (other) {
+            continue;
+        }
+
         u64 hash = this->hash ^ this->history[size - i].hash;
         u64 index = cuckoo::get_h1(hash);
 
@@ -576,7 +584,7 @@ bool Board::has_upcomming_repetition(i32 search_ply)
         i8 from = move::get_from(move);
         i8 to = move::get_to(move);
 
-        if ((bitboard::get_between(from, to) ^ bitboard::create(to)) & this->get_occupied()) {
+        if ((bitboard::get_between(from, to)) & this->get_occupied()) {
             continue;
         }
 
@@ -590,7 +598,9 @@ bool Board::has_upcomming_repetition(i32 search_ply)
             piece = this->board[to];
         }
 
-        if (piece == piece::NONE || piece::get_color(piece) != this->color) {
+        assert(piece != piece::NONE);
+
+        if (piece::get_color(piece) != this->color) {
             continue;
         }
 
