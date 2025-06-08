@@ -7,11 +7,8 @@ namespace see
 
 inline bool is_ok(Board& board, const u16& move, i32 threshold)
 {
-    // Gets move type
-    const auto move_type = move::get_type(move);
-
-    // Skips castling moves
-    if (move_type == move::type::CASTLING) {
+    // Skips special moves
+    if (move::get_type(move) != move::type::NORMAL) {
         return true;
     }
 
@@ -20,16 +17,10 @@ inline bool is_ok(Board& board, const u16& move, i32 threshold)
     auto to = move::get_to(move);
 
     auto piece = board.get_type_at(from);
-    auto captured = move_type == move::type::ENPASSANT ? piece::type::PAWN : board.get_type_at(to);
+    auto captured = board.get_type_at(to);
 
     // Piece balance
     i32 value = (captured == piece::type::NONE ? 0 : eval::PIECE_VALUE[captured]) - threshold;
-
-    // Checks promotion
-    if (move_type == move::type::PROMOTION) {
-        piece = move::get_promotion_type(move);
-        value += eval::PIECE_VALUE[piece] - eval::PIECE_VALUE[piece::type::PAWN];
-    }
 
     // If we still lose after making the move, then stop
     if (value < 0) {
@@ -45,11 +36,6 @@ inline bool is_ok(Board& board, const u16& move, i32 threshold)
 
     // Occupied pieces
     u64 occupied = board.get_occupied() ^ bitboard::create(from);
-
-    // Removes captured enpassant pawn
-    if (move_type == move::type::ENPASSANT) {
-        occupied ^= bitboard::create(to ^ 8);
-    }
 
     // Gets attackers
     u64 attackers = board.get_attackers(to, occupied);
