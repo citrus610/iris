@@ -192,8 +192,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Gets is root node
     const bool is_root = PV && data.ply == 0;
 
-    if (!data.board.get_pieces(piece::type::KING, data.board.get_color())) {
-        data.board.print();
+    // Checks upcomming repetition
+    if (!is_root && alpha < eval::score::DRAW && data.board.has_upcomming_repetition(data.ply)) {
+        alpha = eval::score::DRAW;
+
+        if (alpha >= beta) {
+            return alpha;
+        }
     }
 
     // Quiensence search

@@ -9,6 +9,7 @@
 #include "castling.h"
 #include "attack.h"
 #include "zobrist.h"
+#include "cuckoo.h"
 #include "board.h"
 #include "movegen.h"
 
@@ -20,6 +21,7 @@ inline void init()
     zobrist::init();
     attack::init();
     bitboard::init();
+    cuckoo::init();
 };
 
 };

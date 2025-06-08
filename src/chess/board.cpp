@@ -554,6 +554,58 @@ bool Board::has_non_pawn(i8 color)
     return this->colors[this->color] & ~(this->pieces[piece::type::PAWN] | this->pieces[piece::type::KING]);
 };
 
+bool Board::has_upcomming_repetition(i32 search_ply)
+{
+    const i32 size = static_cast<i32>(this->history.size());
+    const i32 max = std::min(this->halfmove, size);
+
+    u64 other = ~(this->hash ^ this->history[size - 1].hash);
+
+    for (i32 i = 3; i <= max; i += 2) {
+        other ^= ~(this->history[size - i].hash ^ this->history[size - i + 1].hash);
+
+        if (other) {
+            continue;
+        }
+
+        u64 hash = this->hash ^ this->history[size - i].hash;
+        u64 index = cuckoo::get_h1(hash);
+
+        if (cuckoo::HASH[index] != hash) {
+            index = cuckoo::get_h2(hash);
+        }
+
+        if (cuckoo::HASH[index] != hash) {
+            continue;
+        }
+
+        u16 move = cuckoo::MOVE[index];
+
+        i8 a = move::get_from(move);
+        i8 b = move::get_to(move);
+
+        if (bitboard::get_between(a, b) & this->get_occupied()) {
+            continue;
+        }
+
+        if (i < search_ply) {
+            return true;
+        }
+
+        i8 piece = this->board[a];
+
+        if (piece == piece::NONE) {
+            piece = this->board[b];
+        }
+
+        assert(piece != piece::NONE);
+
+        return piece::get_color(piece) == this->color;
+    }
+
+    return false;
+};
+
 void Board::make(u16 move)
 {
     // Gets move data
