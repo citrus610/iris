@@ -6,8 +6,8 @@
 namespace cuckoo
 {
 
-inline u64 HASH[8192] = { 0 };
-inline u16 MOVE[8192] = { 0 };
+alignas(64) inline u64 HASH[8192] = { 0 };
+alignas(64) inline u16 MOVE[8192] = { 0 };
 
 constexpr u64 get_h1(u64 hash)
 {
