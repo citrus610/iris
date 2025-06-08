@@ -70,7 +70,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
 
     this->thread = new std::thread([&] (Board board, uci::parse::Go go) {
         // Inits search data
-        auto data = Data(board);
+        auto data = new Data(board);
 
         // Storing best pv lines found in each iteration
         std::vector<pv::Line> pv_history = {};
@@ -81,11 +81,11 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         // Iterative deepening
         for (i32 i = 1; i < go.depth; ++i) {
             // Clear search data
-            data.clear();
+            data->clear();
 
             // Principle variation search
             u64 time_1 = timer::get_current();
-            i32 score = this->aspiration_window(data, i, score_old);
+            i32 score = this->aspiration_window(*data, i, score_old);
             u64 time_2 = timer::get_current();
 
             // Avoids returning false score when stopping early
@@ -97,17 +97,17 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             score_old = score;
 
             // Saves pv line
-            if (data.stack[0].pv.count != 0 && data.stack[0].pv[0] != move::NONE) {
-                pv_history.push_back(data.stack[0].pv);
+            if (data->stack[0].pv.count != 0 && data->stack[0].pv[0] != move::NONE) {
+                pv_history.push_back(data->stack[0].pv);
             }
 
             // Prints infos
             if constexpr (!BENCH) {
                 uci::print::info(
                     i,
-                    data.seldepth,
+                    data->seldepth,
                     score,
-                    data.nodes,
+                    data->nodes,
                     time_2 - time_1,
                     this->table.hashfull(),
                     pv_history.back()
@@ -115,7 +115,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             };
 
             // Saves search stats
-            this->nodes += data.nodes;
+            this->nodes += data->nodes;
             this->time += time_2 - time_1;
 
             // Avoids searching too shallow
@@ -132,6 +132,9 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 break;
             }
         }
+
+        // Free data
+        delete data;
 
         // Prints best move
         if constexpr (!BENCH) {
