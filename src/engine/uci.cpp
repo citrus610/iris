@@ -184,7 +184,7 @@ namespace uci::print
 
 void option()
 {
-    std::cout << "option name Hash type spin default 16 min 1 max 128" << std::endl;
+    std::cout << "option name Hash type spin default 16 min 1 max 1024" << std::endl;
     std::cout << "option name Threads type spin default 1 min 1 max 1" << std::endl;
 
     if constexpr (!tune::TUNING) {

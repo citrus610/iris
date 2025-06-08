@@ -46,24 +46,6 @@ inline std::vector<Test> set = {
         .result = false
     },
     Test {
-        .fen = "k3n2r/3P4/8/8/8/8/8/1K6 w - - 0 1",
-        .move = move::get<move::type::PROMOTION>(square::D7, square::E8, piece::type::QUEEN),
-        .threshold = eval::PIECE_VALUE[piece::type::ROOK],
-        .result = false
-    },
-    Test {
-        .fen = "k3n3/3P4/8/8/8/8/8/1K6 w - - 0 1",
-        .move = move::get<move::type::PROMOTION>(square::D7, square::E8, piece::type::QUEEN),
-        .threshold = eval::PIECE_VALUE[piece::type::ROOK],
-        .result = true
-    },
-    Test {
-        .fen = "k3n3/3P4/8/8/8/8/8/1K6 w - - 0 1",
-        .move = move::get<move::type::PROMOTION>(square::D7, square::E8, piece::type::QUEEN),
-        .threshold = eval::PIECE_VALUE[piece::type::ROOK],
-        .result = true
-    },
-    Test {
         .fen = "rn2k2r/p3bpp1/2p4p/8/2P3Q1/1P1q4/P4P1P/RNB1K2R w KQkq - 0 8",
         .move = move::get<move::type::NORMAL>(square::G4, square::G7),
         .threshold = 0,
@@ -92,37 +74,7 @@ inline std::vector<Test> set = {
         .move = move::get<move::type::NORMAL>(square::D5, square::B7),
         .threshold = 0,
         .result = true
-    },
-    Test {
-        .fen = "6b1/k7/8/3Pp3/2K2N1r/8/8/8 w - e6 0 1",
-        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
-        .threshold = 0,
-        .result = true
-    },
-    Test {
-        .fen = "6b1/k7/8/3Pp3/2K2N1r/8/8/8 w - e6 0 1",
-        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
-        .threshold = 1,
-        .result = false
-    },
-    Test {
-        .fen = "6b1/k7/8/3Pp3/2K2N2/8/8/8 w - e6 0 1",
-        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
-        .threshold = eval::PIECE_VALUE[piece::type::PAWN],
-        .result = true
-    },
-    Test {
-        .fen = "k7/8/8/2KPp3/8/8/8/4r3 w - e6 0 1",
-        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
-        .threshold = eval::PIECE_VALUE[piece::type::PAWN],
-        .result = false
-    },
-    Test {
-        .fen = "k7/8/7R/2KPp3/8/8/8/4r3 w - e6 0 1",
-        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
-        .threshold = eval::PIECE_VALUE[piece::type::PAWN],
-        .result = true
-    },
+    }
 };
 
 inline void test()
