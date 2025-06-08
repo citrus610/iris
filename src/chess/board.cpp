@@ -554,7 +554,7 @@ bool Board::has_non_pawn(i8 color)
     return this->colors[this->color] & ~(this->pieces[piece::type::PAWN] | this->pieces[piece::type::KING]);
 };
 
-bool Board::has_upcomming_repetition(i32 search_ply)
+bool Board::has_upcomming_repetition()
 {
     const i32 size = static_cast<i32>(this->history.size());
     const i32 max = std::min(this->halfmove, size);
@@ -588,19 +588,7 @@ bool Board::has_upcomming_repetition(i32 search_ply)
             continue;
         }
 
-        if (i < search_ply) {
-            return true;
-        }
-
-        i8 piece = this->board[a];
-
-        if (piece == piece::NONE) {
-            piece = this->board[b];
-        }
-
-        assert(piece != piece::NONE);
-
-        return piece::get_color(piece) == this->color;
+        return true;
     }
 
     return false;

@@ -85,7 +85,7 @@ public:
     bool is_legal(u16 move);
     bool is_quiet(u16 move);
     bool has_non_pawn(i8 color);
-    bool has_upcomming_repetition(i32 search_ply);
+    bool has_upcomming_repetition();
 public:
     void make(u16 move);
     void unmake(u16 move);
