@@ -400,6 +400,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         // Checks for quiet
         const bool is_quiet = data.board.is_quiet(move);
 
+        // Gets history score
+        const i32 history = is_quiet ? data.history.get_score_quiet(data, move) : data.history.get_score_noisy(data, move);
+
         // Pruning
         if (!is_root && best > -eval::score::MATE_FOUND) {
             // Late move pruning
@@ -451,8 +454,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             reduction -= table_pv;
             reduction -= data.board.get_checkers() != 0ULL;
 
+            if (is_quiet) {
+                reduction -= history / tune::LMR_HIST_QUIET_DIV;
+            }
+
             // Clamps depth to avoid qsearch
-            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next + 1);
+            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next);
 
             // Scouts
             score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_reduced);
