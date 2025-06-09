@@ -163,7 +163,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     while (true)
     {
         // Principle variation search
-        score = this->pvsearch<true>(data, alpha, beta, depth);
+        score = this->pvsearch<Node::ROOT>(data, alpha, beta, depth);
 
         // Aborts
         if (!this->running.test()) {
@@ -189,11 +189,12 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     return score;
 };
 
-template <bool PV>
+template <Node NODE>
 i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 {
-    // Gets is root node
-    const bool is_root = PV && data.ply == 0;
+    // Gets node type
+    constexpr bool is_root = NODE == Node::ROOT;
+    constexpr bool is_pv = NODE != Node::NORMAL;
 
     // Checks upcomming repetition
     if (!is_root && alpha < eval::score::DRAW && data.board.has_upcomming_repetition()) {
@@ -206,7 +207,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Quiensence search
     if (depth <= 0) {
-        return this->qsearch<PV>(data, alpha, beta);
+        return this->qsearch<is_pv>(data, alpha, beta);
     }
 
     // Aborts search
@@ -249,7 +250,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     auto table_score = eval::score::NONE;
     auto table_depth = 0;
     auto table_bound = transposition::bound::NONE;
-    auto table_pv = PV;
+    auto table_pv = is_pv;
 
     if (table_hit) {
         table_move = table_entry->get_move();
@@ -260,7 +261,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         table_pv |= table_entry->is_pv();
 
         // Cut off
-        if (!PV && table_score != eval::score::NONE && table_depth >= depth) {
+        if (!is_pv && table_score != eval::score::NONE && table_depth >= depth) {
             if ((table_bound == transposition::bound::EXACT) ||
                 (table_bound == transposition::bound::LOWER && table_score >= beta) ||
                 (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
@@ -327,7 +328,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Reverse futility pruning
-    if (!PV &&
+    if (!is_pv &&
         depth <= tune::RFP_DEPTH &&
         eval < eval::score::MATE_FOUND &&
         eval >= beta + depth * tune::RFP_COEF) {
@@ -335,7 +336,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Null move pruning
-    if (!PV &&
+    if (!is_pv &&
         data.stack[data.ply - 1].move != move::NONE &&
         eval >= beta &&
         depth >= tune::NMP_DEPTH &&
@@ -350,7 +351,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         data.make_null();
 
         // Scouts
-        i32 score = -this->pvsearch<false>(data, -beta, -beta + 1, depth - reduction);
+        i32 score = -this->pvsearch<Node::NORMAL>(data, -beta, -beta + 1, depth - reduction);
 
         // Unmakes
         data.unmake_null();
@@ -463,21 +464,21 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next);
 
             // Scouts
-            score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_reduced);
+            score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
 
             // Failed
             if (score > alpha && depth_reduced < depth_next) {
-                score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_next);
+                score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_next);
             }
         }
         // Scouts with null window for non pv nodes
-        else if (!PV || legals > 1) {
-            score = -this->pvsearch<false>(data, -alpha - 1, -alpha, depth_next);
+        else if (!is_pv || legals > 1) {
+            score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_next);
         }
 
         // Searches as pv node for first child or researches after scouting
-        if (PV && (legals == 1 || score > alpha)) {
-            score = -this->pvsearch<true>(data, -beta, -alpha, depth_next);
+        if (is_pv && (legals == 1 || score > alpha)) {
+            score = -this->pvsearch<Node::PV>(data, -beta, -alpha, depth_next);
         }
 
         // Unmakes move
@@ -806,8 +807,9 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 template bool Engine::search<true>(Board, uci::parse::Go);
 template bool Engine::search<false>(Board, uci::parse::Go);
 
-template i32 Engine::pvsearch<true>(Data&, i32, i32, i32);
-template i32 Engine::pvsearch<false>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<Node::ROOT>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<Node::PV>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<Node::NORMAL>(Data&, i32, i32, i32);
 
 template i32 Engine::qsearch<true>(Data&, i32, i32);
 template i32 Engine::qsearch<false>(Data&, i32, i32);
