@@ -176,7 +176,7 @@ constexpr Weight MG = Weight {
         50, 100, 50
     },
     .threat_minor = {
-        40, 25
+        50, 25
     }
 };
 
