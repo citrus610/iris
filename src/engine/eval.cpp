@@ -205,7 +205,7 @@ i32 get_pawn_structure(Board& board)
         return result;
     } ();
 
-    i32 pawn_passed[2] = { 0, 0 };
+    i32 pawn_structure[2] = { 0, 0 };
 
     for (i8 color = 0; color < 2; ++color) {
         u64 pawn_us = board.get_pieces(piece::type::PAWN, color);
@@ -216,12 +216,25 @@ i32 get_pawn_structure(Board& board)
             i8 sq = bitboard::pop_lsb(pawn_us);
 
             if ((FORWARD_PASS[color][sq] & pawn_them) == 0) {
-                pawn_passed[color] += eval::DEFAULT.pawn_passed[rank::get_relative(square::get_rank(sq), color)];
+                pawn_structure[color] += eval::DEFAULT.pawn_passed[rank::get_relative(square::get_rank(sq), color)];
             }
         }
     }
 
-    return pawn_passed[0] - pawn_passed[1];
+    // Pawns phalanx
+    for (i8 color = 0; color < 2; ++color) {
+        const u64 pawns = board.get_pieces(piece::type::PAWN, color);
+        u64 phalanx = pawns & bitboard::get_shift<direction::WEST>(pawns);
+
+        while (phalanx)
+        {
+            const i8 sq = bitboard::pop_lsb(phalanx);
+
+            pawn_structure[color] += eval::DEFAULT.pawn_phalanx[rank::get_relative(square::get_rank(sq), color)];
+        }
+    }
+
+    return pawn_structure[0] - pawn_structure[1];
 };
 
 i32 get_threat(Board& board)

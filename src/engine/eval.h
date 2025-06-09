@@ -69,6 +69,7 @@ struct Weight
     i32 bishop_pair;
 
     i32 pawn_passed[8];
+    i32 pawn_phalanx[8];
     
     i32 threat_pawn[3];
     i32 threat_minor[2];
@@ -166,6 +167,9 @@ constexpr Weight MG = Weight {
 
     .pawn_passed = {
         0, 0, -5, -10, 10, 15, 25, 0
+    },
+    .pawn_phalanx = {
+        0, 10, 20, 30, 50, 100, 150, 0
     },
 
     .threat_pawn = {
@@ -267,6 +271,9 @@ constexpr Weight EG = Weight {
     .pawn_passed = {
         0, 15, 20, 50, 75, 100, 150, 0
     },
+    .pawn_phalanx = {
+        0, 0, 15, 35, 100, 150, 250, 0
+    },
 
     .threat_pawn = {
         20, -35, -15
@@ -314,6 +321,7 @@ constexpr Weight DEFAULT = [] {
 
     for (i32 i = 0; i < 8; ++i) {
         SW(pawn_passed[i], w, MG, EG);
+        SW(pawn_phalanx[i], w, MG, EG);
     }
 
     for (i32 i = 0; i < 3; ++i) {
