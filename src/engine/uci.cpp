@@ -123,11 +123,11 @@ std::optional<Go> go(std::string in)
         }
 
         if (tokens[i] == "wtime") {
-            option.time[color::WHITE] = std::max(std::stoi(tokens[i + 1]), 100);
+            option.time[color::WHITE] = std::stoi(tokens[i + 1]);
         }
 
         if (tokens[i] == "btime") {
-            option.time[color::BLACK] = std::max(std::stoi(tokens[i + 1]), 100);
+            option.time[color::BLACK] = std::stoi(tokens[i + 1]);
         }
 
         if (tokens[i] == "depth") {

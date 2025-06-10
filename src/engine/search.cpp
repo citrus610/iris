@@ -211,7 +211,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Aborts search
-    if ((data.nodes & 0xFFF) == 0) {
+    if ((data.nodes & 0xFFF) == 0 && data.nodes > 0) {
         if (this->timer.is_over_hard()) {
             this->running.clear();
         }
@@ -591,7 +591,7 @@ template <bool PV>
 i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 {
     // Aborts search
-    if ((data.nodes & 0xFFF) == 0) {
+    if ((data.nodes & 0xFFF) == 0 && data.nodes > 0) {
         if (this->timer.is_over_hard()) {
             this->running.clear();
         }
