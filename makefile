@@ -3,8 +3,10 @@ EXE ?= iris
 
 ifeq ($(OS), Windows_NT)
 	SUFFIX := .exe
+	STATIC := -lstdc++fs -static -static-libgcc
 else
 	SUFFIX :=
+	STATIC :=
 endif
 
 ifeq ($(PROF), true)
@@ -26,8 +28,6 @@ endif
 ifeq ($(PEXT), true)
 	CXXFLAGS += -DUSE_PEXT
 endif
-
-STATIC := -lsetupapi -lhid -luser32 -lgdi32 -lgdiplus -lShlwapi -ldwmapi -lstdc++fs -static -static-libgcc
 
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
 EXE := $(EXE)$(SUFFIX)
