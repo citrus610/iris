@@ -27,6 +27,8 @@ ifeq ($(PEXT), true)
 	CXXFLAGS += -DUSE_PEXT
 endif
 
+STATIC := -lsetupapi -lhid -luser32 -lgdi32 -lgdiplus -lShlwapi -ldwmapi -lstdc++fs -static -static-libgcc
+
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
 EXE := $(EXE)$(SUFFIX)
 
@@ -35,19 +37,19 @@ EXE := $(EXE)$(SUFFIX)
 all: iris
 
 iris:
-	@$(CXX) $(CXXFLAGS) -march=native $(SRC) -o $(EXE)
+	@$(CXX) $(CXXFLAGS) -march=native $(SRC) $(STATIC) -o $(EXE)
 
 v1:
-	@$(CXX) $(CXXFLAGS) -march=x86-64 $(SRC) -o iris_x86-64-v1$(SUFFIX)
+	@$(CXX) $(CXXFLAGS) -march=x86-64 $(SRC) $(STATIC) -o iris_x86-64-v1$(SUFFIX)
 
 v2:
-	@$(CXX) $(CXXFLAGS) -march=x86-64-v2 $(SRC) -o iris_x86-64-v2$(SUFFIX)
+	@$(CXX) $(CXXFLAGS) -march=x86-64-v2 $(SRC) $(STATIC) -o iris_x86-64-v2$(SUFFIX)
 
 v3:
-	@$(CXX) $(CXXFLAGS) -march=x86-64-v3 -DUSE_PEXT $(SRC) -o iris_x86-64-v3$(SUFFIX)
+	@$(CXX) $(CXXFLAGS) -march=x86-64-v3 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v3$(SUFFIX)
 
 v4:
-	@$(CXX) $(CXXFLAGS) -march=x86-64-v4 -DUSE_PEXT $(SRC) -o iris_x86-64-v4$(SUFFIX)
+	@$(CXX) $(CXXFLAGS) -march=x86-64-v4 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v4$(SUFFIX)
 
 release: v1 v2 v3 v4
 
