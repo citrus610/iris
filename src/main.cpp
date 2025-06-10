@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     auto go = uci::parse::Go();
     auto engine = search::Engine();
 
-    const std::string NAME = "Iris v0.1";
+    const std::string NAME = "Iris v1.0";
     const std::string AUTHOR = "citrus610";
 
     engine.set({ .hash = 16 });
