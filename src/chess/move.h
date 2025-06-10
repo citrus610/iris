@@ -61,8 +61,29 @@ constexpr i8 get_promotion_type(u16 move)
 
 constexpr std::string get_str(u16 move)
 {
-    auto from_str = square::get_str(move::get_from(move));
-    auto to_str = square::get_str(move::get_to(move));
+    i8 from = move::get_from(move);
+    i8 to = move::get_to(move);
+
+    if (move::get_type(move) == move::type::CASTLING) {
+        switch (to)
+        {
+        case square::A1:
+            to = square::C1;
+            break;
+        case square::H1:
+            to = square::G1;
+            break;
+        case square::A8:
+            to = square::C8;
+            break;
+        case square::H8:
+            to = square::G8;
+            break;
+        }
+    }
+
+    auto from_str = square::get_str(from);
+    auto to_str = square::get_str(to);
 
     auto str = from_str + to_str;
 
