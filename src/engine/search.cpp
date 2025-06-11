@@ -242,8 +242,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
 
+    // Checks singular
+    const bool is_singular = data.stack[data.ply].excluded != move::NONE;
+
     // Probes transposition table
-    auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
+    auto [table_hit, table_entry] = is_singular ? std::make_pair(false, nullptr) : this->table.get(data.board.get_hash());
 
     auto table_move = move::NONE;
     auto table_eval = eval::score::NONE;
@@ -289,6 +292,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         data.stack[data.ply].eval = eval::score::NONE;
         goto loop;
     }
+    else if (is_singular) {
+        eval = data.stack[data.ply].eval;
+        eval_raw = data.stack[data.ply].eval;
+        eval_static = data.stack[data.ply].eval;
+    }
     else if (table_hit) {
         eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
         eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
@@ -329,6 +337,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Reverse futility pruning
     if (!is_pv &&
+        !is_singular &&
         depth <= tune::RFP_DEPTH &&
         eval < eval::score::MATE_FOUND &&
         eval >= beta + depth * tune::RFP_COEF) {
@@ -337,6 +346,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Null move pruning
     if (!is_pv &&
+        !is_singular &&
         data.stack[data.ply - 1].move != move::NONE &&
         eval >= beta &&
         depth >= tune::NMP_DEPTH &&
@@ -391,6 +401,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             break;
         }
 
+        // Checks singular
+        if (move == data.stack[data.ply].excluded) {
+            continue;
+        }
+
         // Checks legality
         if (!data.board.is_legal(move)) {
             continue;
@@ -436,11 +451,40 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             }
         }
 
+        // Extensions
+        i32 extension = 0;
+
+        // Singular extension
+        if (!is_root &&
+            !is_singular &&
+            move == table_move &&
+            depth >= tune::SE_DEPTH &&
+            table_depth >= depth - 3 &&
+            table_bound != transposition::bound::UPPER) {
+            // Gets search data
+            const i32 singular_beta = std::max(-eval::score::INFINITE + 1, table_score - depth * 2);
+            const i32 singular_depth = (depth - 1) / 2;
+
+            // Adds excluded move
+            data.stack[data.ply].excluded = move;
+
+            // Search
+            i32 score = this->pvsearch<Node::NORMAL>(data, singular_beta - 1, singular_beta, singular_depth);
+
+            // Removes excluded move
+            data.stack[data.ply].excluded = move::NONE;
+
+            // Singular extension
+            if (score < singular_beta) {
+                extension = 1;
+            }
+        }
+        else {
+            extension = is_in_check;
+        }
+
         // Makes move
         data.make(move);
-
-        // Extensions
-        i32 extension = is_in_check;
 
         // Searches
         i32 score = -eval::score::INFINITE;
@@ -545,12 +589,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Checks stalemate or checkmate
     if (legals == 0) {
+        if (is_singular) {
+            return alpha;
+        }
+
         if (is_in_check) {
-            return -eval::score::MATE + data.ply;
+            return data.ply - eval::score::MATE;
         }
-        else {
-            return eval::score::DRAW;
-        }
+
+        return eval::score::DRAW;
     }
 
     // Gets bound
@@ -572,17 +619,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Updates transposition table
-    table_entry->set(
-        data.board.get_hash(),
-        best_move,
-        best,
-        eval_raw,
-        depth,
-        this->table.age,
-        table_pv,
-        bound,
-        data.ply
-    );
+    if (!is_singular) {
+        table_entry->set(
+            data.board.get_hash(),
+            best_move,
+            best,
+            eval_raw,
+            depth,
+            this->table.age,
+            table_pv,
+            bound,
+            data.ply
+        );
+    }
 
     return best;
 };
@@ -780,7 +829,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
     // Returns mate score
     if (legals == 0 && is_in_check) {
-        return -eval::score::MATE + data.ply;
+        return data.ply - eval::score::MATE;
     }
 
     // Updates transposition table
