@@ -66,6 +66,7 @@ VALUE(IIR_DEPTH, 4, 0, 0, 10, false)
 
 VALUE(SE_DEPTH, 8, 4, 12, 1, false)
 VALUE(SE_DOUBLE_BIAS, 16, 4, 20, 1, false)
+VALUE(SE_TRIPLE_BIAS, 100, 50, 500, 20, false)
 
 VALUE(HS_BONUS_COEF, 178, 50, 500, 20, false)
 VALUE(HS_BONUS_BIAS, -50, -250, 0, 20, false)

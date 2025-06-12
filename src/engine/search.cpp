@@ -460,7 +460,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             move == table_move &&
             depth >= tune::SE_DEPTH &&
             table_depth >= depth - 3 &&
-            table_bound != transposition::bound::UPPER) {
+            table_bound != transposition::bound::UPPER &&
+            std::abs(table_score) < eval::score::MATE_FOUND) {
             // Gets search data
             const i32 singular_beta = std::max(-eval::score::INFINITE + 1, table_score - depth * 2);
             const i32 singular_depth = (depth - 1) / 2;
@@ -474,8 +475,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             // Removes excluded move
             data.stack[data.ply].excluded = move::NONE;
 
-            // Singular extension
+            // Extensions
             if (score < singular_beta) {
+                // Singular extension
                 extension = 1;
 
                 // Double extension
