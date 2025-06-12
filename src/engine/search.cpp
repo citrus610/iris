@@ -484,6 +484,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 if (!is_pv && score + tune::SE_DOUBLE_BIAS < singular_beta) {
                     extension += 1;
                 }
+
+                // Triple extension
+                if (!is_pv && is_quiet && score + tune::SE_TRIPLE_BIAS < singular_beta) {
+                    extension += 1;
+                }
             }
             // Multicut
             else if (singular_beta >= beta) {
