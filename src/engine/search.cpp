@@ -496,7 +496,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             }
             // Negative extension
             else if (table_score >= beta) {
-                extension = -2;
+                extension = -1;
             }
         }
         else {
