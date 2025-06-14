@@ -32,11 +32,13 @@ public:
 
 inline Entry& Data::operator [] (usize index)
 {
+    assert(index < MAX_PLY + 8);
     return this->data[index];
 };
 
 inline const Entry& Data::operator [] (usize index) const
 {
+    assert(index < MAX_PLY + 8);
     return this->data[index];
 };
 

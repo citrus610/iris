@@ -138,6 +138,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
 
         // Prints best move
         if constexpr (!BENCH) {
+            assert(!pv_history.empty());
             uci::print::best(pv_history.back()[0]);
         };
     }, uci_board, uci_go);
@@ -221,7 +222,17 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         return eval::score::DRAW;
     }
 
+    // In check
+    const bool is_in_check = data.board.get_checkers();
+
+    // Max ply reached
+    if (data.ply >= MAX_PLY) {
+        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+    }
+
     // Updates data
+    assert(data.ply >= 0);
+
     data.stack[data.ply].pv.count = 0;
     data.nodes += 1;
     data.seldepth = std::max(data.seldepth, data.ply);
@@ -256,6 +267,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     auto table_pv = is_pv;
 
     if (table_hit) {
+        assert(table_entry != nullptr);
+
         table_move = table_entry->get_move();
         table_eval = table_entry->get_eval();
         table_score = table_entry->get_score(data.ply);
@@ -274,9 +287,6 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Gets important values for search, prunings, extensions
-    // In check
-    const bool is_in_check = data.board.get_checkers();
-
     // Resets killer move
     data.stack[data.ply + 1].killer = move::NONE;
 
@@ -315,6 +325,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         eval = eval_static;
 
         // Stores this eval into the table
+        assert(table_entry != nullptr);
+
         table_entry->set(
             data.board.get_hash(),
             move::NONE,
@@ -494,6 +506,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             else if (singular_beta >= beta) {
                 return singular_beta;
             }
+            // Negative extension
+            // else if (table_score >= beta) {
+            //     extension = -1;
+            // }
         }
         else {
             extension = is_in_check;
@@ -521,7 +537,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             }
 
             // Clamps depth to avoid qsearch
-            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next);
+            i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
             // Scouts
             score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
@@ -636,6 +652,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Updates transposition table
     if (!is_singular) {
+        assert(table_entry != nullptr);
+
         table_entry->set(
             data.board.get_hash(),
             best_move,
@@ -666,7 +684,17 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         return eval::score::DRAW;
     }
 
+    // In check
+    const bool is_in_check = data.board.get_checkers();
+
+    // Max ply reached
+    if (data.ply >= MAX_PLY) {
+        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+    }
+
     // Updates data
+    assert(data.ply >= 0);
+
     data.stack[data.ply].pv.count = 0;
     data.nodes += 1;
     data.seldepth = std::max(data.seldepth, data.ply);
@@ -674,14 +702,6 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     // Checks draw
     if (data.board.is_draw(data.ply)) {
         return eval::score::DRAW;
-    }
-
-    // In check
-    const bool is_in_check = data.board.get_checkers();
-
-    // Max ply reached
-    if (data.ply >= MAX_PLY) {
-        return is_in_check ? eval::score::DRAW : eval::get(data.board);
     }
 
     // Probes transposition table
@@ -694,6 +714,8 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     auto table_pv = PV;
 
     if (table_hit) {
+        assert(table_entry != nullptr);
+
         table_move = table_entry->get_move();
         table_eval = table_entry->get_eval();
         table_score = table_entry->get_score(data.ply);
@@ -730,6 +752,8 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         }
         else {
             // Stores this eval into the table
+            assert(table_entry != nullptr);
+
             table_entry->set(
                 data.board.get_hash(),
                 move::NONE,
@@ -853,6 +877,8 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         best >= beta ? transposition::bound::LOWER :
         best > alpha_old ? transposition::bound::EXACT :
         transposition::bound::UPPER;
+
+    assert(table_entry != nullptr);
 
     table_entry->set(
         data.board.get_hash(),
