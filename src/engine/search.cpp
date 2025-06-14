@@ -221,6 +221,14 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         return eval::score::DRAW;
     }
 
+    // In check
+    const bool is_in_check = data.board.get_checkers();
+
+    // Max ply reached
+    if (data.ply >= MAX_PLY) {
+        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+    }
+
     // Updates data
     data.stack[data.ply].pv.count = 0;
     data.nodes += 1;
@@ -274,9 +282,6 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Gets important values for search, prunings, extensions
-    // In check
-    const bool is_in_check = data.board.get_checkers();
-
     // Resets killer move
     data.stack[data.ply + 1].killer = move::NONE;
 
@@ -521,7 +526,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             }
 
             // Clamps depth to avoid qsearch
-            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next);
+            i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
             // Scouts
             score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
@@ -666,6 +671,14 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         return eval::score::DRAW;
     }
 
+    // In check
+    const bool is_in_check = data.board.get_checkers();
+
+    // Max ply reached
+    if (data.ply >= MAX_PLY) {
+        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+    }
+
     // Updates data
     data.stack[data.ply].pv.count = 0;
     data.nodes += 1;
@@ -674,14 +687,6 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     // Checks draw
     if (data.board.is_draw(data.ply)) {
         return eval::score::DRAW;
-    }
-
-    // In check
-    const bool is_in_check = data.board.get_checkers();
-
-    // Max ply reached
-    if (data.ply >= MAX_PLY) {
-        return is_in_check ? eval::score::DRAW : eval::get(data.board);
     }
 
     // Probes transposition table

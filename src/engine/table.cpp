@@ -163,6 +163,8 @@ std::pair<bool, Entry*> Table::get(u64 hash)
 {
     const u64 index = this->get_index(hash);
 
+    assert(index < this->count);
+
     auto entries = this->buckets[index].entries;
 
     // Finds matching entry
