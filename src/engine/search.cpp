@@ -123,8 +123,12 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 continue;
             }
 
+            // Time control scaling
+            // Nodes count
+            f64 nodes_ratio = f64(data->counter.get(data->stack[0].pv[0])) / f64(data->nodes);
+
             // Checks time
-            if (!go.infinite && this->timer.is_over_soft()) {
+            if (!go.infinite && this->timer.is_over_soft(nodes_ratio)) {
                 this->running.clear();
             }
 
@@ -163,7 +167,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     while (true)
     {
         // Principle variation search
-        score = this->pvsearch<Node::ROOT>(data, alpha, beta, depth);
+        score = this->pvsearch<node::Type::ROOT>(data, alpha, beta, depth);
 
         // Aborts
         if (!this->running.test()) {
@@ -189,12 +193,12 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     return score;
 };
 
-template <Node NODE>
+template <node::Type NODE>
 i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 {
     // Gets node type
-    constexpr bool is_root = NODE == Node::ROOT;
-    constexpr bool is_pv = NODE != Node::NORMAL;
+    constexpr bool is_root = NODE == node::Type::ROOT;
+    constexpr bool is_pv = NODE != node::Type::NORMAL;
 
     // Checks upcomming repetition
     if (!is_root && alpha < eval::score::DRAW && data.board.has_upcomming_repetition()) {
@@ -366,7 +370,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         data.make_null();
 
         // Scouts
-        i32 score = -this->pvsearch<Node::NORMAL>(data, -beta, -beta + 1, depth - reduction);
+        i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction);
 
         // Unmakes
         data.unmake_null();
@@ -475,7 +479,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             data.stack[data.ply].excluded = move;
 
             // Search
-            i32 score = this->pvsearch<Node::NORMAL>(data, singular_beta - 1, singular_beta, singular_depth);
+            i32 score = this->pvsearch<node::Type::NORMAL>(data, singular_beta - 1, singular_beta, singular_depth);
 
             // Removes excluded move
             data.stack[data.ply].excluded = move::NONE;
@@ -504,6 +508,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             extension = is_in_check;
         }
 
+        // Gets move's nodes count
+        u64 nodes_start = data.nodes;
+
         // Makes move
         data.make(move);
 
@@ -511,6 +518,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         i32 score = -eval::score::INFINITE;
         i32 depth_next = depth - 1 + extension;
 
+        // Late move reduction
         if (legals > 1 + is_root * 2 &&
             depth >= tune::LMR_DEPTH &&
             picker.get_stage() > order::Stage::KILLER) {
@@ -522,28 +530,28 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             reduction += !is_improving;
 
             if (is_quiet) {
-                reduction -= history / tune::LMR_HIST_QUIET_DIV;
+                reduction -= history / tune::LMR_HIST_DIV;
             }
 
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
             // Scouts
-            score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
+            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
 
             // Failed
             if (score > alpha && depth_reduced < depth_next) {
-                score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+                score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
             }
         }
         // Scouts with null window for non pv nodes
         else if (!is_pv || legals > 1) {
-            score = -this->pvsearch<Node::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
         }
 
         // Searches as pv node for first child or researches after scouting
         if (is_pv && (legals == 1 || score > alpha)) {
-            score = -this->pvsearch<Node::PV>(data, -beta, -alpha, depth_next);
+            score = -this->pvsearch<node::Type::PV>(data, -beta, -alpha, depth_next);
         }
 
         // Unmakes move
@@ -552,6 +560,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         // Aborts search
         if (!this->running.test()) {
             return eval::score::DRAW;
+        }
+
+        // Set root moves' nodes count
+        if constexpr (is_root) {
+            data.counter.set(move, data.nodes - nodes_start);
         }
 
         // Updates best
@@ -877,9 +890,9 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 template bool Engine::search<true>(Board, uci::parse::Go);
 template bool Engine::search<false>(Board, uci::parse::Go);
 
-template i32 Engine::pvsearch<Node::ROOT>(Data&, i32, i32, i32);
-template i32 Engine::pvsearch<Node::PV>(Data&, i32, i32, i32);
-template i32 Engine::pvsearch<Node::NORMAL>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<node::Type::ROOT>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<node::Type::PV>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<node::Type::NORMAL>(Data&, i32, i32, i32);
 
 template i32 Engine::qsearch<true>(Data&, i32, i32);
 template i32 Engine::qsearch<false>(Data&, i32, i32);

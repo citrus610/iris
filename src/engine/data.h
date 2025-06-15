@@ -2,6 +2,7 @@
 
 #include "history.h"
 #include "stack.h"
+#include "node.h"
 
 class Data
 {
@@ -14,6 +15,7 @@ public:
 public:
     u64 nodes;
     i32 seldepth;
+    node::Counter counter;
 public:
     Data(const Board& board);
 public:

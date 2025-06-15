@@ -97,7 +97,7 @@ std::optional<Go> go(std::string in)
         .time = { 0, 0 },
         .increment = { 0, 0 },
         .movestogo = {},
-        .infinite = false
+        .infinite = true
     };
 
     std::stringstream ss(in);
@@ -124,23 +124,22 @@ std::optional<Go> go(std::string in)
 
         if (tokens[i] == "wtime") {
             option.time[color::WHITE] = std::stoi(tokens[i + 1]);
+            option.infinite = false;
         }
 
         if (tokens[i] == "btime") {
             option.time[color::BLACK] = std::stoi(tokens[i + 1]);
+            option.infinite = false;
         }
 
         if (tokens[i] == "depth") {
             option.depth = std::stoi(tokens[i + 1]);
+            option.infinite = false;
         }
 
         if (tokens[i] == "movestogo") {
             option.movestogo = std::stoi(tokens[i + 1]);
         }
-    }
-
-    if ((option.time[0] == 0 || option.time[1] == 0) && option.infinite == false) {
-        return {};
     }
 
     return option;

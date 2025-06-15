@@ -12,6 +12,7 @@ void Data::clear()
     this->stack.clear();
     this->nodes = 0;
     this->seldepth = 0;
+    this->counter = node::Counter();
 };
 
 void Data::make(const u16& move)
