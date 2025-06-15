@@ -17,7 +17,7 @@ public:
     void set(uci::parse::Go go, i8 color);
     void clear();
 public:
-    bool is_over_soft(f64 nodes_ratio);
+    bool is_over_soft(f64 nodes_ratio, i32 pv_stability);
     bool is_over_hard();
 };
 

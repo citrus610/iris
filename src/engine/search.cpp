@@ -72,11 +72,12 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         // Inits search data
         auto data = new Data(board);
 
-        // Storing best pv lines found in each iteration
+        // Search history
         std::vector<pv::Line> pv_history = {};
-
-        // Previous search score
         i32 score_old = -eval::score::INFINITE;
+
+        // Time scalers
+        i32 pv_stability = 0;
 
         // Iterative deepening
         for (i32 i = 1; i < go.depth; ++i) {
@@ -127,8 +128,18 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
             // Nodes count
             f64 nodes_ratio = f64(data->counter.get(data->stack[0].pv[0])) / f64(data->nodes);
 
+            // PV stability
+            if (pv_history.size() > 1) {
+                if (pv_history[pv_history.size() - 1][0] == pv_history[pv_history.size() - 2][0]) {
+                    pv_stability = std::min(pv_stability + 1, 10);
+                }
+                else {
+                    pv_stability = 0;
+                }
+            }
+
             // Checks time
-            if (!go.infinite && this->timer.is_over_soft(nodes_ratio)) {
+            if (!go.infinite && this->timer.is_over_soft(nodes_ratio, pv_stability)) {
                 this->running.clear();
             }
 
