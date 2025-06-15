@@ -8,7 +8,7 @@ namespace timer
 class Data
 {
 public:
-    u64 now;
+    u64 start;
     u64 limit_soft;
     u64 limit_hard;
 public:
@@ -17,7 +17,7 @@ public:
     void set(uci::parse::Go go, i8 color);
     void clear();
 public:
-    bool is_over_soft();
+    bool is_over_soft(f64 nodes_ratio);
     bool is_over_hard();
 };
 
