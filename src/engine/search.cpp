@@ -345,7 +345,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         !is_singular &&
         depth <= tune::RFP_DEPTH &&
         eval < eval::score::MATE_FOUND &&
-        eval >= beta + depth * tune::RFP_COEF) {
+        eval >= beta + depth * tune::RFP_COEF - is_improving * tune::RFP_IMP_COEF) {
         return eval;
     }
 
@@ -511,6 +511,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         i32 score = -eval::score::INFINITE;
         i32 depth_next = depth - 1 + extension;
 
+        // Late move reduction
         if (legals > 1 + is_root * 2 &&
             depth >= tune::LMR_DEPTH &&
             picker.get_stage() > order::Stage::KILLER) {
@@ -522,7 +523,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             reduction += !is_improving;
 
             if (is_quiet) {
-                reduction -= history / tune::LMR_HIST_QUIET_DIV;
+                reduction -= history / tune::LMR_HIST_DIV;
             }
 
             // Clamps depth to avoid qsearch
