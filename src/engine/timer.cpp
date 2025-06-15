@@ -27,12 +27,13 @@ void Data::clear()
     this->limit_hard = UINT64_MAX;
 };
 
-bool Data::is_over_soft(f64 nodes_ratio, i32 pv_stability)
+bool Data::is_over_soft(f64 nodes_ratio, i32 pv_stability, i32 eval_stability)
 {
     f64 remain = this->limit_soft - this->start;
 
     remain *= 2.0 - 1.5 * nodes_ratio;
     remain *= 1.25 - 0.05 * f64(pv_stability);
+    remain *= 1.2 - 0.04 * f64(eval_stability);
 
     return timer::get_current() >= this->start + u64(remain);
 };

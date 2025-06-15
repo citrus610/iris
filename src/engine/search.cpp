@@ -75,9 +75,11 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
         // Search history
         std::vector<pv::Line> pv_history = {};
         i32 score_old = -eval::score::INFINITE;
+        i32 average = eval::score::NONE;
 
         // Time scalers
         i32 pv_stability = 0;
+        i32 eval_stability = 0;
 
         // Iterative deepening
         for (i32 i = 1; i < go.depth; ++i) {
@@ -138,8 +140,18 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 }
             }
 
+            // Eval stability
+            average = average == eval::score::NONE ? score : (average + score) / 2;
+
+            if (std::abs(average - score) <= tune::TM_EVAL_DELTA) {
+                eval_stability = std::min(eval_stability + 1, 10);
+            }
+            else {
+                eval_stability = 0;
+            }
+
             // Checks time
-            if (!go.infinite && this->timer.is_over_soft(nodes_ratio, pv_stability)) {
+            if (!go.infinite && this->timer.is_over_soft(nodes_ratio, pv_stability, eval_stability)) {
                 this->running.clear();
             }
 
