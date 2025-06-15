@@ -10,3 +10,4 @@ WIP UCI chess engine
   - [Ethereal](https://github.com/AndyGrant/Ethereal)
   - [Alexandria](https://github.com/PGG106/Alexandria)
   - [Obsidian](https://github.com/gab8192/Obsidian)
+  - [Reckless](ttps://github.com/codedeliveryservice/Reckless)
