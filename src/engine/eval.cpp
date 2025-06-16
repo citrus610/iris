@@ -15,6 +15,7 @@ i32 get(Board& board)
     score += eval::get_bishop_pair(board);
     score += eval::get_pawn_structure(board);
     score += eval::get_threat(board);
+    score += eval::get_open(board);
 
     // Gets midgame and engame values
     i32 midgame = score::get_midgame(score);
@@ -268,6 +269,30 @@ i32 get_threat(Board& board)
     threat += (threat_pawn_queen_white - threat_pawn_queen_black) * eval::DEFAULT.threat_pawn[2];
 
     return threat;
+};
+
+i32 get_open(Board& board)
+{
+    i32 king_open = 0;
+
+    const u64 pawn_white = board.get_pieces(piece::type::PAWN, color::WHITE);
+    const u64 pawn_black = board.get_pieces(piece::type::PAWN, color::BLACK);
+
+    const u64 semiopen_white = ~(bitboard::get_fill_up(pawn_white) | bitboard::get_fill_down(pawn_white));
+    const u64 semiopen_black = ~(bitboard::get_fill_up(pawn_black) | bitboard::get_fill_down(pawn_black));
+
+    const u64 open = semiopen_white & semiopen_black;
+
+    const u64 king_white = board.get_pieces(piece::type::KING, color::WHITE);
+    const u64 king_black = board.get_pieces(piece::type::KING, color::BLACK);
+
+    king_open += bitboard::get_count(king_white & open) * eval::DEFAULT.king_open;
+    king_open += bitboard::get_count(king_white & semiopen_white) * eval::DEFAULT.king_semiopen;
+
+    king_open -= bitboard::get_count(king_black & open) * eval::DEFAULT.king_open;
+    king_open -= bitboard::get_count(king_black & semiopen_black) * eval::DEFAULT.king_semiopen;
+
+    return king_open;
 };
 
 i32 get_scale(Board& board, i32 eval)

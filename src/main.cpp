@@ -142,6 +142,12 @@ int main(int argc, char* argv[])
             break;
         }
 
+        if (tune::TUNING && tokens[0] == "spsa") {
+            tune::print_spsa();
+
+            continue;
+        }
+
         std::cout << "Unknown command: " << tokens[0] << std::endl;
     }
     

@@ -65,6 +65,8 @@ struct Weight
     i32 mobility_queen[28];
 
     i32 king_defense[9];
+    i32 king_open;
+    i32 king_semiopen;
 
     i32 bishop_pair;
 
@@ -162,6 +164,8 @@ constexpr Weight MG = Weight {
     .king_defense = {
         -35, -15, 0, 15, 20, 25, 30, 15, 15
     },
+    .king_open = -75,
+    .king_semiopen = -30,
 
     .bishop_pair = 25,
 
@@ -265,6 +269,8 @@ constexpr Weight EG = Weight {
     .king_defense = {
         -5, 0, 5, 5, 5, 0, -5, -10, -10
     },
+    .king_open = 5,
+    .king_semiopen = 15,
 
     .bishop_pair = 50,
 
@@ -317,6 +323,9 @@ constexpr Weight DEFAULT = [] {
         SW(king_defense[i], w, MG, EG);
     }
 
+    SW(king_open, w, MG, EG);
+    SW(king_semiopen, w, MG, EG);
+
     SW(bishop_pair, w, MG, EG);
 
     for (i32 i = 0; i < 8; ++i) {
@@ -352,6 +361,8 @@ i32 get_bishop_pair(Board& board);
 i32 get_pawn_structure(Board& board);
 
 i32 get_threat(Board& board);
+
+i32 get_open(Board& board);
 
 i32 get_scale(Board& board, i32 eval);
 
