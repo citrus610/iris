@@ -101,16 +101,6 @@ i32 get_mobility(Board& board)
 
     const u64 occupied = colors[0] | colors[1];
 
-    const u64 occupied_no_bishop[2] = {
-        occupied ^ board.get_pieces(piece::type::BISHOP, color::WHITE),
-        occupied ^ board.get_pieces(piece::type::BISHOP, color::BLACK)
-    };
-
-    const u64 occupied_no_rook[2] = {
-        occupied ^ board.get_pieces(piece::type::ROOK, color::WHITE),
-        occupied ^ board.get_pieces(piece::type::ROOK, color::BLACK)
-    };
-
     const u64 moveable[2] = {
         ~(colors[color::WHITE] | attack::get_pawn_span<color::BLACK>(board.get_pieces(piece::type::PAWN, color::BLACK))),
         ~(colors[color::BLACK] | attack::get_pawn_span<color::WHITE>(board.get_pieces(piece::type::PAWN, color::WHITE)))
@@ -134,20 +124,20 @@ i32 get_mobility(Board& board)
             mobility[color] += eval::DEFAULT.mobility_knight[bitboard::get_count(attack)];
         }
         else if (type == piece::type::BISHOP) {
-            u64 attack = attack::get_bishop(square, occupied_no_bishop[color]) & moveable[color];
+            u64 attack = attack::get_bishop(square, occupied) & moveable[color];
 
             mobility[color] += eval::DEFAULT.mobility_bishop[bitboard::get_count(attack)];
         }
         else if (type == piece::type::ROOK) {
-            u64 attack = attack::get_rook(square, occupied_no_rook[color]) & moveable[color];
+            u64 attack = attack::get_rook(square, occupied) & moveable[color];
 
             mobility[color] += eval::DEFAULT.mobility_rook[bitboard::get_count(attack)];
         }
         else if (type == piece::type::QUEEN) {
             u64 attack = 0ULL;
 
-            attack |= attack::get_bishop(square, occupied_no_bishop[color]);
-            attack |= attack::get_rook(square, occupied_no_rook[color]);
+            attack |= attack::get_bishop(square, occupied);
+            attack |= attack::get_rook(square, occupied);
             attack &= moveable[color];
 
             mobility[color] += eval::DEFAULT.mobility_queen[bitboard::get_count(attack)];
