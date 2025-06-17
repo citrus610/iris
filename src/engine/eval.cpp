@@ -269,6 +269,16 @@ i32 get_pawn_structure(Board& board)
         }
     }
 
+    // Protected pawns
+    const u64 pawns_white = board.get_pieces(piece::type::PAWN, color::WHITE);
+    const u64 pawns_black = board.get_pieces(piece::type::PAWN, color::BLACK);
+
+    const u64 pawns_attack_white = attack::get_pawn_span<color::WHITE>(pawns_white);
+    const u64 pawns_attack_black = attack::get_pawn_span<color::BLACK>(pawns_black);
+
+    pawn_structure[0] += bitboard::get_count(pawns_white & pawns_attack_white) * eval::DEFAULT.pawn_protected;
+    pawn_structure[1] += bitboard::get_count(pawns_black & pawns_attack_black) * eval::DEFAULT.pawn_protected;
+
     return pawn_structure[0] - pawn_structure[1];
 };
 
@@ -307,7 +317,7 @@ i32 get_threat(Board& board)
 
 i32 get_open(Board& board)
 {
-    i32 king_open = 0;
+    i32 result = 0;
 
     const u64 pawn_white = board.get_pieces(piece::type::PAWN, color::WHITE);
     const u64 pawn_black = board.get_pieces(piece::type::PAWN, color::BLACK);
@@ -317,16 +327,17 @@ i32 get_open(Board& board)
 
     const u64 open = semiopen_white & semiopen_black;
 
+    // King
     const u64 king_white = board.get_pieces(piece::type::KING, color::WHITE);
     const u64 king_black = board.get_pieces(piece::type::KING, color::BLACK);
 
-    king_open += bitboard::get_count(king_white & open) * eval::DEFAULT.king_open;
-    king_open += bitboard::get_count(king_white & semiopen_white) * eval::DEFAULT.king_semiopen;
+    result += bitboard::get_count(king_white & open) * eval::DEFAULT.king_open;
+    result += bitboard::get_count(king_white & semiopen_white) * eval::DEFAULT.king_semiopen;
 
-    king_open -= bitboard::get_count(king_black & open) * eval::DEFAULT.king_open;
-    king_open -= bitboard::get_count(king_black & semiopen_black) * eval::DEFAULT.king_semiopen;
+    result -= bitboard::get_count(king_black & open) * eval::DEFAULT.king_open;
+    result -= bitboard::get_count(king_black & semiopen_black) * eval::DEFAULT.king_semiopen;
 
-    return king_open;
+    return result;
 };
 
 i32 get_scale(Board& board, i32 eval)
