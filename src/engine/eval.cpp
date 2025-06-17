@@ -183,7 +183,7 @@ i32 get_bishop_pair(Board& board)
 
 i32 get_pawn_structure(Board& board)
 {
-    // Passed pawns
+    // Passed pawns mask
     constexpr std::array<std::array<u64, 64>, 2> FORWARD_PASS = [] {
         std::array<std::array<u64, 64>, 2> result = { 0ULL };
 
@@ -209,17 +209,35 @@ i32 get_pawn_structure(Board& board)
         return result;
     } ();
 
+    // Isolated pawns mask
+    constexpr std::array<u64, 8> ADJACENT = [] {
+        std::array<u64, 8> result = { 0ULL };
+
+        for (i8 file = 0; file < 8; ++file) {
+            if (file > 0) {
+                result[file] |= bitboard::FILE[file - 1];
+            }
+
+            if (file < 7) {
+                result[file] |= bitboard::FILE[file + 1];
+            }
+        }
+    
+        return result;
+    } ();
+
     i32 pawn_structure[2] = { 0, 0 };
 
+    // Passed pawns
     for (i8 color = 0; color < 2; ++color) {
-        u64 pawn_us = board.get_pieces(piece::type::PAWN, color);
-        u64 pawn_them = board.get_pieces(piece::type::PAWN, !color);
+        u64 pawns_us = board.get_pieces(piece::type::PAWN, color);
+        u64 pawns_them = board.get_pieces(piece::type::PAWN, !color);
 
-        while (pawn_us)
+        while (pawns_us)
         {
-            i8 sq = bitboard::pop_lsb(pawn_us);
+            i8 sq = bitboard::pop_lsb(pawns_us);
 
-            if ((FORWARD_PASS[color][sq] & pawn_them) == 0) {
+            if ((FORWARD_PASS[color][sq] & pawns_them) == 0) {
                 pawn_structure[color] += eval::DEFAULT.pawn_passed[rank::get_relative(square::get_rank(sq), color)];
             }
         }
@@ -235,6 +253,19 @@ i32 get_pawn_structure(Board& board)
             const i8 sq = bitboard::pop_lsb(phalanx);
 
             pawn_structure[color] += eval::DEFAULT.pawn_phalanx[rank::get_relative(square::get_rank(sq), color)];
+        }
+    }
+
+    // Isolated pawns
+    for (i8 color = 0; color < 2; ++color) {
+        const u64 pawns = board.get_pieces(piece::type::PAWN, color);
+
+        for (i8 file = 0; file < 8; ++file) {
+            if (ADJACENT[file] & pawns) {
+                continue;
+            }
+
+            pawn_structure[color] += bitboard::get_count(pawns & bitboard::FILE[file]) * eval::DEFAULT.pawn_isolated;
         }
     }
 
