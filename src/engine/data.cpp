@@ -1,8 +1,9 @@
 #include "data.h"
 
-Data::Data(const Board& board)
+Data::Data(const Board& board, u64 id)
 {
     this->board = board;
+    this->id = id;
     this->clear();
 };
 

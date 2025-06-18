@@ -7,6 +7,8 @@
 class Data
 {
 public:
+    u64 id;
+public:
     Board board;
     i32 ply;
     stack::Data stack;
@@ -17,7 +19,7 @@ public:
     i32 seldepth;
     node::Counter counter;
 public:
-    Data(const Board& board);
+    Data(const Board& board, u64 id = 0);
 public:
     void clear();
 public:
