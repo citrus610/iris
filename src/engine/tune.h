@@ -35,7 +35,7 @@ VALUE(AW_DEPTH, 4, 3, 6, 1, false)
 VALUE(AW_DELTA, 25, 10, 50, 10, false)
 
 VALUE(RAZOR_DEPTH, 5, 3, 10, 1, false)
-VALUE(RAZOR_COEF, 300, 100, 500, 20, false)
+VALUE(RAZOR_COEF, 350, 100, 500, 20, false)
 
 VALUE(RFP_DEPTH, 8, 6, 12, 1, false)
 VALUE(RFP_COEF, 63, 20, 100, 10, true)
