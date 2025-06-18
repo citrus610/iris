@@ -11,7 +11,7 @@ Engine::Engine()
 void Engine::clear()
 {
     this->running.clear();
-    this->thread = nullptr;
+    this->threads.clear();
     this->timer.clear();
     this->table.clear();
     this->nodes = 0;
@@ -21,11 +21,12 @@ void Engine::clear()
 void Engine::set(uci::parse::Setoption uci_setoption)
 {
     this->table.init(uci_setoption.hash);
+    this->thread_count = uci_setoption.threads;
 };
 
 bool Engine::stop()
 {
-    if (this->thread == nullptr) {
+    if (this->threads.empty()) {
         return false;
     }
 
@@ -36,18 +37,19 @@ bool Engine::stop()
 
 bool Engine::join()
 {
-    if (this->thread == nullptr) {
+    if (this->threads.empty()) {
         return false;
     }
 
-    if (!this->thread->joinable()) {
-        return false;
+    for (auto& t : this->threads) {
+        if (!t.joinable()) {
+            continue;
+        }
+
+        t.join();
     }
 
-    this->thread->join();
-
-    delete this->thread;
-    this->thread = nullptr;
+    this->threads.clear();
 
     return true;
 };
@@ -55,7 +57,7 @@ bool Engine::join()
 template <bool BENCH>
 bool Engine::search(Board uci_board, uci::parse::Go uci_go)
 {
-    if (this->running.test() || this->thread != nullptr) {
+    if (this->running.test() || !this->threads.empty()) {
         return false;
     }
 
@@ -68,94 +70,100 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
     // Starts the search thread
     this->running.test_and_set();
 
-    this->thread = new std::thread([&] (Board board, uci::parse::Go go) {
-        // Inits search data
-        auto data = new Data(board);
+    // Starts threads
+    for (u64 i = 0; i < this->thread_count; ++i) {
+        this->threads.emplace_back([&] (Board board, uci::parse::Go go, u64 id) {
+            // Inits search data
+            auto data = new Data(board, id);
 
-        // Search history
-        std::vector<pv::Line> pv_history = {};
-        i32 score_old = -eval::score::INFINITE;
+            // Search history
+            std::vector<pv::Line> pv_history = {};
+            i32 score_old = -eval::score::INFINITE;
 
-        // Time scalers
-        i32 pv_stability = 0;
+            // Time scalers
+            i32 pv_stability = 0;
 
-        // Iterative deepening
-        for (i32 i = 1; i < go.depth; ++i) {
-            // Clear search data
-            data->clear();
+            // Iterative deepening
+            for (i32 i = 1; i < go.depth; ++i) {
+                // Clear search data
+                data->clear();
 
-            // Principle variation search
-            u64 time_1 = timer::get_current();
-            i32 score = this->aspiration_window(*data, i, score_old);
-            u64 time_2 = timer::get_current();
+                // Principle variation search
+                u64 time_1 = timer::get_current();
+                i32 score = this->aspiration_window(*data, i, score_old);
+                u64 time_2 = timer::get_current();
 
-            // Avoids returning false score when stopping early
-            if (!this->running.test()) {
-                score = score_old;
+                // Avoids returning false score when stopping early
+                if (!this->running.test()) {
+                    score = score_old;
+                }
+                
+                // Updates score
+                score_old = score;
+
+                // Saves pv line
+                if (data->stack[0].pv.count != 0 && data->stack[0].pv[0] != move::NONE) {
+                    pv_history.push_back(data->stack[0].pv);
+                }
+
+                // Saves search stats
+                this->nodes += data->nodes;
+
+                if (id == 0) {
+                    this->time += time_2 - time_1;
+                }
+
+                // Prints infos
+                if (!BENCH && id == 0) {
+                    uci::print::info(
+                        i,
+                        data->seldepth,
+                        score,
+                        data->nodes,
+                        this->nodes.load() * 1000 / std::max(this->time.load(), u64(1)),
+                        this->table.hashfull(),
+                        pv_history.back()
+                    );
+                };
+
+                // Avoids searching too shallow
+                if (i < 4) {
+                    continue;
+                }
+
+                // Time control scaling
+                // Nodes count
+                f64 nodes_ratio = f64(data->counter.get(data->stack[0].pv[0])) / f64(data->nodes);
+
+                // PV stability
+                if (pv_history.size() > 1) {
+                    if (pv_history[pv_history.size() - 1][0] == pv_history[pv_history.size() - 2][0]) {
+                        pv_stability = std::min(pv_stability + 1, 10);
+                    }
+                    else {
+                        pv_stability = 0;
+                    }
+                }
+
+                // Checks time
+                if (id == 0 && !go.infinite && this->timer.is_over_soft(nodes_ratio, pv_stability)) {
+                    this->running.clear();
+                }
+
+                if (!this->running.test()) {
+                    break;
+                }
             }
-            
-            // Updates score
-            score_old = score;
 
-            // Saves pv line
-            if (data->stack[0].pv.count != 0 && data->stack[0].pv[0] != move::NONE) {
-                pv_history.push_back(data->stack[0].pv);
-            }
+            // Free data
+            delete data;
 
-            // Prints infos
-            if constexpr (!BENCH) {
-                uci::print::info(
-                    i,
-                    data->seldepth,
-                    score,
-                    data->nodes,
-                    time_2 - time_1,
-                    this->table.hashfull(),
-                    pv_history.back()
-                );
+            // Prints best move
+            if (!BENCH && id == 0) {
+                uci::print::best(pv_history.back()[0]);
             };
-
-            // Saves search stats
-            this->nodes += data->nodes;
-            this->time += time_2 - time_1;
-
-            // Avoids searching too shallow
-            if (i < 4) {
-                continue;
-            }
-
-            // Time control scaling
-            // Nodes count
-            f64 nodes_ratio = f64(data->counter.get(data->stack[0].pv[0])) / f64(data->nodes);
-
-            // PV stability
-            if (pv_history.size() > 1) {
-                if (pv_history[pv_history.size() - 1][0] == pv_history[pv_history.size() - 2][0]) {
-                    pv_stability = std::min(pv_stability + 1, 10);
-                }
-                else {
-                    pv_stability = 0;
-                }
-            }
-
-            // Checks time
-            if (!go.infinite && this->timer.is_over_soft(nodes_ratio, pv_stability)) {
-                this->running.clear();
-            }
-
-            if (!this->running.test()) {
-                break;
-            }
-        }
-
-        // Free data
-        delete data;
-
-        // Prints best move
-        if constexpr (!BENCH) {
-            uci::print::best(pv_history.back()[0]);
-        };
-    }, uci_board, uci_go);
+        }, uci_board, uci_go, i);
+    }
 
     return true;
 };
@@ -226,10 +234,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Aborts search
-    if ((data.nodes & 0xFFF) == 0 && data.nodes > 0) {
-        if (this->timer.is_over_hard()) {
-            this->running.clear();
-        }
+    if (data.id == 0 && (data.nodes & 0xFFF) == 0 && data.nodes > 0 && this->timer.is_over_hard()) {
+        this->running.clear();
     }
 
     if (!this->running.test()) {
@@ -685,10 +691,8 @@ template <bool PV>
 i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 {
     // Aborts search
-    if ((data.nodes & 0xFFF) == 0 && data.nodes > 0) {
-        if (this->timer.is_over_hard()) {
-            this->running.clear();
-        }
+    if (data.id == 0 && (data.nodes & 0xFFF) == 0 && data.nodes > 0 && this->timer.is_over_hard()) {
+        this->running.clear();
     }
 
     if (!this->running.test()) {

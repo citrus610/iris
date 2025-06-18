@@ -4,12 +4,26 @@
 #include "eval.h"
 #include "tune.h"
 
+namespace uci
+{
+
+constexpr u64 HASH_DEFAULT = 8ULL;
+constexpr u64 HASH_MIN = 1ULL;
+constexpr u64 HASH_MAX = 1ULL << 16;
+
+constexpr u64 THREAD_DEFAULT = 1ULL;
+constexpr u64 THREAD_MIN = 1ULL;
+constexpr u64 THREAD_MAX = 1ULL << 8;
+
+};
+
 namespace uci::parse
 {
 
 struct Setoption
 {
-    u64 hash;
+    u64 hash = HASH_DEFAULT;
+    u64 threads = THREAD_DEFAULT;
 };
 
 struct Go

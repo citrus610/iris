@@ -15,13 +15,14 @@ class Engine
 {
 private:
     std::atomic_flag running;
-    std::thread* thread;
+    std::vector<std::thread> threads;
+    u64 thread_count;
 private:
     timer::Data timer;
     transposition::Table table;
 public:
-    u64 nodes;
-    u64 time;
+    std::atomic<u64> nodes;
+    std::atomic<u64> time;
 public:
     Engine();
 public:

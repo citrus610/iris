@@ -147,9 +147,7 @@ std::optional<Go> go(std::string in)
 
 std::optional<Setoption> setoption(std::string in)
 {
-    auto option = Setoption {
-        .hash = 16
-    };
+    auto option = Setoption();
 
     std::stringstream ss(in);
     std::string token;
@@ -160,8 +158,16 @@ std::optional<Setoption> setoption(std::string in)
         tokens.push_back(token);
     }
 
-    if (tokens[2] == "Hash" && tokens.size() > 4) {
-        option.hash = std::stoi(tokens[4]);
+    if (tokens.size() < 5) {
+        return option;
+    }
+
+    if (tokens[2] == "Hash") {
+        option.hash = std::clamp(std::stoi(tokens[4]), i32(HASH_MIN), i32(HASH_MAX));
+    }
+
+    if (tokens[2] == "Threads") {
+        option.threads = std::clamp(std::stoi(tokens[4]), i32(THREAD_MIN), i32(THREAD_MAX));
     }
 
     if constexpr (tune::TUNING) {
@@ -184,8 +190,8 @@ namespace uci::print
 
 void option()
 {
-    std::cout << "option name Hash type spin default 16 min 1 max 1024" << std::endl;
-    std::cout << "option name Threads type spin default 1 min 1 max 1" << std::endl;
+    std::cout << "option name Hash type spin default " << HASH_DEFAULT << " min " << HASH_MIN << " max " << HASH_MAX << std::endl;
+    std::cout << "option name Threads type spin default " << THREAD_DEFAULT << " min " << THREAD_MIN << " max " << THREAD_MAX << std::endl;
 
     if constexpr (!tune::TUNING) {
         return;
@@ -196,7 +202,7 @@ void option()
     }
 };
 
-void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull, pv::Line pv)
+void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 nps, u64 hashfull, pv::Line pv)
 {
     std::cout << "info ";
 
@@ -216,7 +222,7 @@ void info(i32 depth, i32 seldepth, i32 score, u64 nodes, u64 time, u64 hashfull,
 
     std::cout << "nodes " << nodes << " ";
 
-    std::cout << "nps " << (nodes * 1000 / std::max(u64(time), u64(1))) << " ";
+    std::cout << "nps " << nps << " ";
 
     std::cout << "hashfull " << hashfull <<  " ";
 
