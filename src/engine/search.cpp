@@ -559,7 +559,14 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
             // Failed
             if (score > alpha && depth_reduced < depth_next) {
-                score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+                // Scales next depth based on the returned search score
+                depth_next += score > best + tune::LMR_MORE_COEF + depth_next * 2;
+                depth_next -= score < best + depth_next;
+
+                // Searches again
+                if (depth_reduced < depth_next) {
+                    score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+                }
             }
         }
         // Scouts with null window for non pv nodes
