@@ -216,6 +216,29 @@ u64 Board::get_attackers(i8 square, u64 occupied)
         (attack::get_king(square) & this->pieces[piece::type::KING]);
 };
 
+u64 Board::get_hash_after(u16 move)
+{
+    if (move == move::NONE) {
+        return this->hash ^ zobrist::get_color();
+    }
+
+    const i8 from = move::get_from(move);
+    const i8 to = move::get_to(move);
+
+    const i8 piece = this->board[from];
+    const i8 captured = this->board[to];
+
+    assert(piece::is_valid(piece));
+
+    u64 result = this->hash ^ zobrist::get_color() ^ zobrist::get_piece(piece, from) ^ zobrist::get_piece(piece, to);
+
+    if (captured != piece::NONE) {
+        result ^= zobrist::get_piece(captured, to);
+    }
+
+    return result;
+};
+
 u64 Board::get_hash_slow()
 {
     u64 result = 0ULL;

@@ -292,7 +292,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         table_bound = table_entry->get_bound();
         table_pv |= table_entry->is_pv();
 
-        // Cut off
+        // Cutoff
         if (!is_pv && table_score != eval::score::NONE && table_depth >= depth) {
             if ((table_bound == transposition::bound::EXACT) ||
                 (table_bound == transposition::bound::LOWER && table_score >= beta) ||
@@ -377,6 +377,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         eval >= beta &&
         depth >= tune::NMP_DEPTH &&
         data.board.has_non_pawn(data.board.get_color())) {
+        // Prefetch table
+        this->table.prefetch(data.board.get_hash_after(move::NONE));
+
         // Calculates reduction count based on depth and eval
         i32 reduction =
             tune::NMP_REDUCTION +
@@ -524,6 +527,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         else {
             extension = is_in_check;
         }
+
+        // Prefetch table
+        this->table.prefetch(data.board.get_hash_after(move));
 
         // Gets move's nodes count
         u64 nodes_start = data.nodes;
@@ -844,6 +850,9 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
                 continue;
             }
         }
+
+        // Prefetch table
+        this->table.prefetch(data.board.get_hash_after(move));
 
         // Makes move
         data.make(move);
