@@ -237,6 +237,14 @@ constexpr i32 get_distance(i8 square_1, i8 square_2)
     return square::get_distance_file(square_1, square_2) + square::get_distance_rank(square_1, square_2);
 };
 
+constexpr i32 get_chebyshev(i8 square_1, i8 square_2)
+{
+    assert(square::is_valid(square_1));
+    assert(square::is_valid(square_2));
+
+    return std::max(square::get_distance_file(square_1, square_2), square::get_distance_rank(square_1, square_2));
+};
+
 constexpr std::string get_str(i8 square)
 {
     assert(square::is_valid(square));
