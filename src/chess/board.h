@@ -72,6 +72,7 @@ public:
     i8 get_king_square(i8 color);
     i8 get_captured_type(u16 move);
     u64 get_attackers(i8 square, u64 occupied);
+    u64 get_hash_after(u16 move);
     u64 get_hash_slow();
     u64 get_hash_pawn_slow();
     u64 get_hash_non_pawn_slow(i8 color);
