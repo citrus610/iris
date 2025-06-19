@@ -76,7 +76,6 @@ struct Weight
     i32 pawn_protected;
     
     i32 threat_pawn[3];
-    i32 threat_minor[2];
 
     i32 tempo;
 };
@@ -182,9 +181,6 @@ constexpr Weight MG = Weight {
 
     .threat_pawn = {
         50, 100, 50
-    },
-    .threat_minor = {
-        50, 25
     }
 };
 
@@ -289,9 +285,6 @@ constexpr Weight EG = Weight {
 
     .threat_pawn = {
         20, -35, -15
-    },
-    .threat_minor = {
-        0, 5
     }
 };
 
@@ -344,10 +337,6 @@ constexpr Weight DEFAULT = [] {
 
     for (i32 i = 0; i < 3; ++i) {
         SW(threat_pawn[i], w, MG, EG);
-    }
-
-    for (i32 i = 0; i < 2; ++i) {
-        SW(threat_minor[i], w, MG, EG);
     }
 
     w.tempo = 20;
