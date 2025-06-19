@@ -544,6 +544,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
             reduction -= table_pv;
             reduction -= data.board.get_checkers() != 0ULL;
+            reduction -= move == data.stack[data.ply - 1].killer;
             reduction += !is_improving;
 
             if (is_quiet) {
