@@ -309,6 +309,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Improving
     bool is_improving = false;
 
+    // Noisy table move
+    bool is_table_move_noisy = table_move != move::NONE && !data.board.is_quiet(table_move);
+
     // Static eval
     i32 eval = eval::score::NONE;
     i32 eval_raw = eval::score::NONE;
@@ -552,6 +555,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             reduction -= data.board.get_checkers() != 0ULL;
             reduction -= move == data.stack[data.ply - 1].killer;
             reduction += !is_improving;
+            reduction += is_table_move_noisy;
 
             if (is_quiet) {
                 reduction -= history / tune::LMR_HIST_DIV;
