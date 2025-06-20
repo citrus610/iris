@@ -362,7 +362,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Razoring
-    if (!is_pv && alpha < 2000 && eval + tune::RAZOR_COEF * depth < alpha) {
+    if (!is_pv &&
+        !is_singular &&
+        alpha < 2000 &&
+        eval + tune::RAZOR_COEF * depth < alpha) {
+        // Scouts with qsearch
         const i32 score = this->qsearch<false>(data, alpha, alpha + 1);
 
         if (score <= alpha) {
