@@ -423,9 +423,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Probabilistic cutoff
-    if (depth >= tune::PROBCUT_DEPTH &&
+    if (!is_pv &&
+        !is_singular &&
+        depth >= tune::PROBCUT_DEPTH &&
         std::abs(beta) < eval::score::MATE_FOUND &&
-        (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
+        (table_score == eval::score::NONE || table_score >= probcut_beta)) {
         // Gets values
         const i32 probcut_threshold = probcut_beta - eval_static;
         const i32 probcut_depth = depth - tune::PROBCUT_REDUCTION;
@@ -477,12 +479,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
             // Returns if the score is good
             if (score >= probcut_beta) {
-                // Probes the table if we haven't because of singular search
-                if (table_entry == nullptr) {
-                    table_entry = this->table.get(data.board.get_hash()).second;
-                }
-
-                // Stores
+                // Stores to table
                 table_entry->set(
                     data.board.get_hash(),
                     move,
