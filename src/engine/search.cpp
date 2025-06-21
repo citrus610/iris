@@ -450,8 +450,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 break;
             }
 
-            // Checks singular and legality
-            if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
+            // Checks legality
+            if (!data.board.is_legal(move)) {
                 continue;
             }
 
