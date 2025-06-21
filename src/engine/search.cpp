@@ -536,6 +536,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             else if (singular_beta >= beta) {
                 return singular_beta;
             }
+            // Negative extension
+            else if (table_score >= beta) {
+                extension = -1;
+            }
         }
         else {
             extension = is_in_check;
