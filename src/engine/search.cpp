@@ -423,10 +423,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     }
 
     // Probabilistic cutoff
-    if (!is_pv &&
-        depth >= tune::PROBCUT_DEPTH &&
+    if (depth >= tune::PROBCUT_DEPTH &&
         std::abs(beta) < eval::score::MATE_FOUND &&
-        (table_score == eval::score::NONE || table_score >= probcut_beta)) {
+        (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
         // Gets values
         const i32 probcut_threshold = probcut_beta - eval_static;
         const i32 probcut_depth = depth - tune::PROBCUT_REDUCTION;
@@ -453,6 +452,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
                 continue;
             }
+
+            // Prefetches table
+            this->table.prefetch(data.board.get_hash_after(move));
 
             // Makes
             data.make(move);
@@ -620,7 +622,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             extension = is_in_check;
         }
 
-        // Prefetch table
+        // Prefetches table
         this->table.prefetch(data.board.get_hash_after(move));
 
         // Gets move's nodes count
@@ -943,7 +945,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
             }
         }
 
-        // Prefetch table
+        // Prefetches table
         this->table.prefetch(data.board.get_hash_after(move));
 
         // Makes move
