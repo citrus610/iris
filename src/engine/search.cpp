@@ -309,6 +309,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Improving
     bool is_improving = false;
 
+    // Probabilistic cutoff beta
+    const i32 probcut_beta = beta + tune::PROBCUT_MARGIN;
+
     // Static eval
     i32 eval = eval::score::NONE;
     i32 eval_raw = eval::score::NONE;
@@ -417,6 +420,82 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
     // Internal iterative reduction
     if (depth >= tune::IIR_DEPTH && !table_move) {
         depth -= 1;
+    }
+
+    // Probabilistic cutoff
+    if (!is_pv &&
+        depth >= tune::PROBCUT_DEPTH &&
+        std::abs(beta) < eval::score::MATE_FOUND &&
+        (table_score == eval::score::NONE || table_score >= probcut_beta)) {
+        // Gets values
+        const i32 probcut_threshold = probcut_beta - eval_static;
+        const i32 probcut_depth = depth - tune::PROBCUT_REDUCTION;
+
+        // Generates good noisy moves
+        auto picker = order::Picker(data, move::NONE, true, probcut_threshold);
+
+        // Iterates moves
+        while (true)
+        {
+            // Skips baddies
+            if (picker.get_stage() == order::Stage::NOISY_BAD) {
+                break;
+            }
+
+            // Gets move
+            const u16 move = picker.get(data);
+
+            if (!move) {
+                break;
+            }
+
+            // Checks singular and legality
+            if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
+                continue;
+            }
+
+            // Makes
+            data.make(move);
+
+            // Searches with qsearch
+            i32 score = -this->qsearch<false>(data, -probcut_beta, -probcut_beta + 1);
+
+            // Searches again with pvsearch if the score from qsearch is good
+            if (score >= probcut_beta) {
+                score = -this->pvsearch<node::Type::NORMAL>(data, -probcut_beta, -probcut_beta + 1, probcut_depth);
+            }
+
+            // Unmakes
+            data.unmake(move);
+
+            // Aborts search
+            if (!this->running.test()) {
+                return eval::score::DRAW;
+            }
+
+            // Returns if the score is good
+            if (score >= probcut_beta) {
+                // Probes the table if we haven't because of singular search
+                if (table_entry == nullptr) {
+                    table_entry = this->table.get(data.board.get_hash()).second;
+                }
+
+                // Stores
+                table_entry->set(
+                    data.board.get_hash(),
+                    move,
+                    score,
+                    eval_raw,
+                    probcut_depth + 1,
+                    this->table.age,
+                    table_pv,
+                    transposition::bound::LOWER,
+                    data.ply
+                );
+
+                return score;
+            }
+        }
     }
 
     // Move loop
