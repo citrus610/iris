@@ -379,7 +379,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         !is_singular &&
         depth <= tune::RFP_DEPTH &&
         eval < eval::score::MATE_FOUND &&
-        eval >= beta + depth * tune::RFP_COEF) {
+        eval >= beta + std::max(depth - is_improving, 1) * tune::RFP_COEF) {
         return eval;
     }
 
