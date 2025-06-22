@@ -16,7 +16,8 @@ int main(int argc, char* argv[])
     auto go = uci::parse::Go();
     auto engine = search::Engine();
 
-    const std::string NAME = "Iris v1.0";
+    const std::string VERSION = "v1.1";
+    const std::string NAME = "Iris";
     const std::string AUTHOR = "citrus610";
 
     engine.set({ .hash = 16 });
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
 
         // Reads input
         if (tokens[0] == "uci") {
-            std::cout << "id name " << NAME << std::endl;
+            std::cout << "id name " << NAME << " " << VERSION << std::endl;
             std::cout << "id author " << AUTHOR << std::endl;
 
             uci::print::option();
