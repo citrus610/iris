@@ -259,4 +259,18 @@ inline arrayvec<u16, move::MAX> get(Board& board)
     return move::gen::get<color::BLACK, TYPE>(board);
 };
 
+inline arrayvec<u16, move::MAX> get_legal(Board& board)
+{
+    auto moves = arrayvec<u16, move::MAX>();
+    auto pseudo_moves = move::gen::get<move::gen::type::ALL>(board);
+
+    for (auto move : pseudo_moves) {
+        if (board.is_legal(move)) {
+            moves.add(move);
+        }
+    }
+
+    return moves;
+};
+
 };

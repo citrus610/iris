@@ -55,4 +55,9 @@ void Net::pop()
     this->stack.pop_back();
 };
 
+void init()
+{
+    
+};
+
 };
