@@ -1,5 +1,8 @@
 CXX ?= g++
 EXE ?= iris
+NET ?= lily
+
+CXXFLAGS += -DNNUE=\"$(NET).bin\"
 
 ifeq ($(OS), Windows_NT)
 	SUFFIX := .exe
@@ -32,12 +35,16 @@ endif
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
 EXE := $(EXE)$(SUFFIX)
 
-.PHONY: all iris v1 v2 v3 v4 release clean
+.PHONY: all loadnet iris v1 v2 v3 v4 release clean
 
-all: iris
+all: loadnet iris
 
-iris:
+iris: loadnet
 	@$(CXX) $(CXXFLAGS) -march=native $(SRC) $(STATIC) -o $(EXE)
+
+datagen: loadnet
+	@mkdir -p bin
+	@$(CXX) $(CXXFLAGS) -DDATAGEN -march=native $(SRC) $(STATIC) -o bin/datagen$(SUFFIX)
 
 v1:
 	@$(CXX) $(CXXFLAGS) -march=x86-64 $(SRC) $(STATIC) -o iris_x86-64-v1$(SUFFIX)
@@ -51,7 +58,10 @@ v3:
 v4:
 	@$(CXX) $(CXXFLAGS) -march=x86-64-v4 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v4$(SUFFIX)
 
-release: v1 v2 v3 v4
+release: loadnet v1 v2 v3 v4
+
+loadnet:
+	@curl -sOL https://github.com/citrus610/iris-net/releases/download/$(NET)/$(NET).bin;
 
 clean:
 	@rm -rf $(EXE)

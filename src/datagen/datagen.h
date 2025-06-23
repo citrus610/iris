@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 #include "game.h"
 
 namespace datagen
@@ -56,6 +57,9 @@ inline Board get_random_opening(Rng& rng)
 
 inline void run()
 {
+    // Std out settings
+    std::cout << std::fixed << std::setprecision(1);
+
     // Stats
     std::atomic<u64> positions = 0;
     std::atomic<u64> win = 0;

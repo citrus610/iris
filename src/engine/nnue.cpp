@@ -3,14 +3,15 @@
 namespace nnue
 {
 
+#ifndef NNUE
+#define NNUE ""
+#endif
+
+INCBIN(nnue_raw, NNUE);
+
 Net::Net()
 {
-    for (i8 color = 0; color < 2; ++color) {
-        for (usize i = 0; i < size::HIDDEN; ++i) {
-            this->accumulator.data[color][i] = PARAMS.in_biases[i];
-        }
-    }
-
+    this->clear();
     this->stack.reserve(512);
     this->stack.clear();
 };
@@ -42,12 +43,98 @@ void Net::update(i8 color, i8 type, i8 square)
     }
 };
 
-void Net::add()
+void Net::clear()
 {
-    this->stack.push_back(this->accumulator);
+    for (i8 color = 0; color < 2; ++color) {
+        for (usize i = 0; i < size::HIDDEN; ++i) {
+            this->accumulator.data[color][i] = PARAMS.in_biases[i];
+        }
+    }
 };
 
-void Net::pop()
+void Net::refresh(Board& board)
+{
+    this->clear();
+
+    for (i8 sq = 0; sq < 64; ++sq) {
+        const i8 piece = board.get_piece_at(sq);
+
+        if (piece == piece::NONE) {
+            continue;
+        }
+
+        const i8 type = piece::get_type(piece);
+        const i8 color = piece::get_color(piece);
+
+        this->update<true>(color, type, sq);
+    }
+};
+
+void Net::make(Board& board, const u16& move)
+{
+    // Pushes to stack
+    this->stack.push_back(this->accumulator);
+
+    // Gets move data
+    if (move == move::NONE) {
+        return;
+    }
+
+    const i8 move_type = move::get_type(move);
+    const i8 from = move::get_from(move);
+    const i8 to = move::get_to(move);
+
+    const i8 piece = board.get_piece_at(from);
+    const i8 type = piece::get_type(piece);
+    const i8 color = piece::get_color(piece);
+    
+    assert(piece != piece::NONE);
+    assert(color == board.get_color());
+
+    // Checks capture
+    const i8 captured = move_type == move::type::CASTLING ? piece::type::NONE : board.get_type_at(to);
+
+    if (captured != piece::type::NONE) {
+        this->update<false>(!color, captured, to);
+    }
+
+    // Checks move type
+    if (move_type == move::type::CASTLING) {
+        assert(type == piece::type::KING);
+
+        bool castle_short = to > from;
+
+        i8 king_to = castling::get_king_to(color, castle_short);
+        i8 rook_to = castling::get_rook_to(color, castle_short);
+
+        this->update<false>(color, piece::type::KING, from);
+        this->update<false>(color, piece::type::ROOK, to);
+
+        this->update<true>(color, piece::type::KING, king_to);
+        this->update<true>(color, piece::type::ROOK, rook_to);
+    }
+    else if (move_type == move::type::PROMOTION) {
+        assert(type == piece::type::PAWN);
+
+        const i8 promotion = move::get_promotion_type(move);
+
+        this->update<false>(color, piece::type::PAWN, from);
+        this->update<true>(color, promotion, to);
+    }
+    else {
+        this->update<false>(color, type, from);
+        this->update<true>(color, type, to);
+    }
+
+    // Captures enpassant pawn
+    if (move_type == move::type::ENPASSANT) {
+        assert(type == piece::type::PAWN);
+
+        this->update<false>(!color, piece::type::PAWN, to ^ 8);
+    }
+};
+
+void Net::unmake()
 {
     assert(!this->stack.empty());
 
@@ -57,7 +144,7 @@ void Net::pop()
 
 void init()
 {
-    
+    std::memcpy((void*)&PARAMS, nnue_raw_data, sizeof(PARAMS));
 };
 
 };

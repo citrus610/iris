@@ -1,6 +1,10 @@
 #pragma once
 
+#define INCBIN_PREFIX
+#define INCBIN_STYLE INCBIN_STYLE_SNAKE
+
 #include "../chess/chess.h"
+#include "../util/incbin.h"
 
 namespace nnue
 {
@@ -44,15 +48,17 @@ public:
     i32 get_eval(i8 color);
 public:
     template <bool ADD> void update(i8 color, i8 type, i8 square);
-    void add();
-    void pop();
+    void clear();
+    void refresh(Board& board);
+    void make(Board& board, const u16& move);
+    void unmake();
 };
 
 constexpr std::pair<usize, usize> get_index(i8 color, i8 type, i8 square)
 {
     return {
-        384 * usize(color) + 64 * usize(type) + usize(square),
-        384 * usize(!color) + 64 * usize(type) + usize(square ^ 56)
+        usize(384) * usize(color) + usize(64) * usize(type) + usize(square),
+        usize(384) * usize(!color) + usize(64) * usize(type) + usize(square ^ 56)
     };
 };
 
