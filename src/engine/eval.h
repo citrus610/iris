@@ -21,6 +21,15 @@ constexpr i32 PIECE_VALUE[6] = {
     100, 320, 330, 500, 900, 100000
 };
 
+constexpr i32 SCALE_PAWN = 1;
+constexpr i32 SCALE_KNIGHT = 3;
+constexpr i32 SCALE_BISHOP = 3;
+constexpr i32 SCALE_ROOK = 5;
+constexpr i32 SCALE_QUEEN = 10;
+
+constexpr i32 SCALE_MAX = 256;
+constexpr i32 SCALE_MIN = SCALE_MAX - SCALE_PAWN * 16 - SCALE_KNIGHT * 4 - SCALE_BISHOP * 4 - SCALE_ROOK * 4 - SCALE_QUEEN * 2;
+
 i32 get(Board& board, nnue::Net& nnue);
 
 i32 get_adjusted(i32 eval, i32 correction, i32 halfmove);
