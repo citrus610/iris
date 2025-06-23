@@ -63,6 +63,7 @@ release: loadnet v1 v2 v3 v4 cleannet
 datagen: loadnet
 	@mkdir -p bin
 	@$(CXX) $(CXXFLAGS) -DDATAGEN -march=native $(SRC) $(STATIC) -o bin/datagen$(SUFFIX)
+	@make cleannet
 
 loadnet:
 	@curl -sOL https://github.com/citrus610/iris-net/releases/download/$(NET)/$(NET_FILE);

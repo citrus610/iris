@@ -8,7 +8,14 @@ int main(int argc, char* argv[])
     search::init();
 
     if constexpr (datagen::GENERATING) {
-        datagen::run();
+        u64 thread_count = 4;
+
+        if (argc > 1) {
+            thread_count = std::stoull(argv[1]);
+        }
+
+        datagen::run(thread_count);
+
         return 0;
     }
 
