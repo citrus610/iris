@@ -1,8 +1,10 @@
 CXX ?= g++
 EXE ?= iris
-NET ?= lily
 
-CXXFLAGS += -DNNUE=\"$(NET).bin\"
+NET ?= lily
+NET_FILE := $(NET).bin
+
+CXXFLAGS += -DNNUE=\"$(NET_FILE)\"
 
 ifeq ($(OS), Windows_NT)
 	SUFFIX := .exe
@@ -18,7 +20,7 @@ else
 	CXXPROF += -s
 endif
 
-ifeq ($(BUILD), debug)
+ifeq ($(DEBUG), true)
 	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -std=c++20 -Wall -Og -g -no-pie
 else
 	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -DNDEBUG -std=c++20 -Wall -O3 -flto $(CXXPROF)
@@ -35,16 +37,14 @@ endif
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
 EXE := $(EXE)$(SUFFIX)
 
-.PHONY: all loadnet iris v1 v2 v3 v4 release clean
+.PHONY: all build loadnet iris v1 v2 v3 v4 release datagen cleannet clean
 
-all: loadnet iris
+all: iris
 
-iris: loadnet
+build:
 	@$(CXX) $(CXXFLAGS) -march=native $(SRC) $(STATIC) -o $(EXE)
 
-datagen: loadnet
-	@mkdir -p bin
-	@$(CXX) $(CXXFLAGS) -DDATAGEN -march=native $(SRC) $(STATIC) -o bin/datagen$(SUFFIX)
+iris: loadnet build cleannet
 
 v1:
 	@$(CXX) $(CXXFLAGS) -march=x86-64 $(SRC) $(STATIC) -o iris_x86-64-v1$(SUFFIX)
@@ -58,12 +58,19 @@ v3:
 v4:
 	@$(CXX) $(CXXFLAGS) -march=x86-64-v4 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v4$(SUFFIX)
 
-release: loadnet v1 v2 v3 v4
+release: loadnet v1 v2 v3 v4 cleannet
+
+datagen: loadnet
+	@mkdir -p bin
+	@$(CXX) $(CXXFLAGS) -DDATAGEN -march=native $(SRC) $(STATIC) -o bin/datagen$(SUFFIX)
 
 loadnet:
-	@curl -sOL https://github.com/citrus610/iris-net/releases/download/$(NET)/$(NET).bin;
+	@curl -sOL https://github.com/citrus610/iris-net/releases/download/$(NET)/$(NET_FILE);
 
-clean:
+cleannet:
+	@rm -rf $(NET_FILE)
+
+clean: cleannet
 	@rm -rf $(EXE)
 
 .DEFAULT_GOAL := iris
