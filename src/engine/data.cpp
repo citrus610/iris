@@ -11,6 +11,7 @@ void Data::clear()
 {
     this->ply = 0;
     this->stack.clear();
+    this->nnue = nnue::Net();
     this->nnue.refresh(this->board);
     this->nodes = 0;
     this->seldepth = 0;
@@ -39,14 +40,12 @@ void Data::make_null()
     this->stack[this->ply].move = move::NONE;
     this->stack[this->ply].conthist = nullptr;
 
-    this->nnue.make(this->board, move::NONE);
     this->board.make_null();
     this->ply += 1;
 };
 
 void Data::unmake_null()
 {
-    this->nnue.unmake();
     this->board.unmake_null();
     this->ply -= 1;
 };

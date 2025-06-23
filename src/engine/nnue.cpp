@@ -75,24 +75,19 @@ void Net::make(Board& board, const u16& move)
     // Pushes to stack
     this->stack.push_back(this->accumulator);
 
-    // Gets move data
-    if (move == move::NONE) {
-        return;
-    }
+    const auto move_type = move::get_type(move);
+    const auto from = move::get_from(move);
+    const auto to = move::get_to(move);
 
-    const i8 move_type = move::get_type(move);
-    const i8 from = move::get_from(move);
-    const i8 to = move::get_to(move);
-
-    const i8 piece = board.get_piece_at(from);
-    const i8 type = piece::get_type(piece);
-    const i8 color = piece::get_color(piece);
+    const auto piece = board.get_piece_at(from);
+    const auto type = piece::get_type(piece);
+    const auto color = piece::get_color(piece);
     
     assert(piece != piece::NONE);
     assert(color == board.get_color());
 
     // Checks capture
-    const i8 captured = move_type == move::type::CASTLING ? piece::type::NONE : board.get_type_at(to);
+    const auto captured = move_type == move::type::CASTLING ? piece::type::NONE : board.get_type_at(to);
 
     if (captured != piece::type::NONE) {
         this->update<false>(!color, captured, to);
@@ -104,8 +99,8 @@ void Net::make(Board& board, const u16& move)
 
         bool castle_short = to > from;
 
-        i8 king_to = castling::get_king_to(color, castle_short);
-        i8 rook_to = castling::get_rook_to(color, castle_short);
+        const auto king_to = castling::get_king_to(color, castle_short);
+        const auto rook_to = castling::get_rook_to(color, castle_short);
 
         this->update<false>(color, piece::type::KING, from);
         this->update<false>(color, piece::type::ROOK, to);
@@ -116,9 +111,9 @@ void Net::make(Board& board, const u16& move)
     else if (move_type == move::type::PROMOTION) {
         assert(type == piece::type::PAWN);
 
-        const i8 promotion = move::get_promotion_type(move);
+        const auto promotion = move::get_promotion_type(move);
 
-        this->update<false>(color, piece::type::PAWN, from);
+        this->update<false>(color, type, from);
         this->update<true>(color, promotion, to);
     }
     else {
@@ -126,7 +121,7 @@ void Net::make(Board& board, const u16& move)
         this->update<true>(color, type, to);
     }
 
-    // Captures enpassant pawn
+    // Removes enpassant pawn
     if (move_type == move::type::ENPASSANT) {
         assert(type == piece::type::PAWN);
 
@@ -146,5 +141,8 @@ void init()
 {
     std::memcpy((void*)&PARAMS, nnue_raw_data, sizeof(PARAMS));
 };
+
+template void Net::update<true>(i8, i8, i8);
+template void Net::update<false>(i8, i8, i8);
 
 };
