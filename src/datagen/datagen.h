@@ -55,11 +55,8 @@ inline Board get_random_opening(Rng& rng)
     return board;
 };
 
-inline void run()
+inline void run(u64 thread_count)
 {
-    // Std out settings
-    std::cout << std::fixed << std::setprecision(1);
-
     // Stats
     std::atomic<u64> positions = 0;
     std::atomic<u64> win = 0;
@@ -70,7 +67,7 @@ inline void run()
     std::vector<std::thread> threads;
     std::mutex mtx;
 
-    for (u64 i = 0; i < 6; ++i) {
+    for (u64 i = 0; i < thread_count; ++i) {
         threads.emplace_back([&] (u64 id) {
             // Creates rng
             auto rng = Rng(id);
@@ -86,7 +83,12 @@ inline void run()
                 
                 // Stores results
                 for (auto& p : game_result.positions) {
-                    lines.push_back(p.fen + " | " + std::to_string(p.score) + " | " + std::to_string(game_result.wdl));
+                    std::string wdl_str =
+                        game_result.wdl > 0.9f ? "1.0" :
+                        game_result.wdl < 0.1f ? "0.0" :
+                        "0.5";
+
+                    lines.push_back(p.fen + " | " + std::to_string(p.score) + " | " + wdl_str);
                 }
 
                 // Updates stats
