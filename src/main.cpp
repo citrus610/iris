@@ -1,10 +1,16 @@
 #include "engine/search.h"
 #include "test/test.h"
+#include "datagen/datagen.h"
 
 int main(int argc, char* argv[])
 {
     chess::init();
     search::init();
+
+    if constexpr (datagen::GENERATING) {
+        datagen::run();
+        return 0;
+    }
 
     if (argc > 1 && std::string(argv[1]) == "bench") {
         test::bench::test();
@@ -16,10 +22,11 @@ int main(int argc, char* argv[])
     auto go = uci::parse::Go();
     auto engine = search::Engine();
 
-    const std::string NAME = "Iris v1.0";
+    const std::string VERSION = "v1.1";
+    const std::string NAME = "Iris";
     const std::string AUTHOR = "citrus610";
 
-    engine.set({ .hash = 16 });
+    engine.set({ .hash = 16, .threads = 1 });
 
     while (true)
     {
@@ -43,7 +50,7 @@ int main(int argc, char* argv[])
 
         // Reads input
         if (tokens[0] == "uci") {
-            std::cout << "id name " << NAME << std::endl;
+            std::cout << "id name " << NAME << " " << VERSION << std::endl;
             std::cout << "id author " << AUTHOR << std::endl;
 
             uci::print::option();

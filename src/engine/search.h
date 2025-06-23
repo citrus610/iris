@@ -13,11 +13,11 @@ namespace search
 
 class Engine
 {
-private:
+public:
     std::atomic_flag running;
     std::vector<std::thread> threads;
     u64 thread_count;
-private:
+public:
     timer::Data timer;
     transposition::Table table;
 public:

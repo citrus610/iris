@@ -247,7 +247,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
     // Max ply reached
     if (data.ply >= MAX_PLY) {
-        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+        return is_in_check ? eval::score::DRAW : eval::get(data.board, data.nnue);
     }
 
     // Updates data
@@ -324,7 +324,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         eval_static = data.stack[data.ply].eval;
     }
     else if (table_hit) {
-        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board, data.nnue);
         eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
         eval = eval_static;
 
@@ -336,7 +336,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         }
     }
     else {
-        eval_raw = eval::get(data.board);
+        eval_raw = eval::get(data.board, data.nnue);
         eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
         eval = eval_static;
 
@@ -731,7 +731,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
     // Max ply reached
     if (data.ply >= MAX_PLY) {
-        return is_in_check ? eval::score::DRAW : eval::get(data.board);
+        return is_in_check ? eval::score::DRAW : eval::get(data.board, data.nnue);
     }
 
     // Updates data
@@ -776,7 +776,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     i32 eval_static = eval::score::NONE;
 
     if (!is_in_check) {
-        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board);
+        eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board, data.nnue);
         eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
         eval = eval_static;
 
@@ -945,6 +945,7 @@ template i32 Engine::qsearch<false>(Data&, i32, i32);
 void init()
 {
     tune::init();
+    nnue::init();
 };
 
 };

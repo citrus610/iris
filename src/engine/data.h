@@ -12,6 +12,7 @@ public:
     Board board;
     i32 ply;
     stack::Data stack;
+    nnue::Net nnue;
 public:
     history::Table history {};
 public:

@@ -7,6 +7,7 @@
 #include "picker.h"
 #include "see.h"
 #include "bench.h"
+#include "nnue.h"
 
 namespace test
 {
@@ -20,6 +21,7 @@ inline void test()
     test::picker::test();
     test::static_exchange::test();
     test::bench::test();
+    test::nn::test();
 };
 
 };
