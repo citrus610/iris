@@ -13,7 +13,7 @@ namespace datagen
 #endif
 
 constexpr usize MAX_OPENING = 8;
-constexpr usize MAX_POSITION = 50000000;
+constexpr usize MAX_POSITION = 200000000;
 constexpr usize SAVE_INTERVAL = 10;
 
 class Rng

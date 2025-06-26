@@ -32,9 +32,9 @@ inline std::vector<Value*> values;
 #endif
 
 VALUE(AW_DEPTH, 4, 3, 6, 1, false)
-VALUE(AW_DELTA, 25, 10, 50, 10, false)
+VALUE(AW_DELTA, 25, 10, 50, 5, false)
 
-VALUE(RAZOR_COEF, 300, 100, 500, 20, false)
+VALUE(RAZOR_COEF, 300, 100, 500, 20, true)
 
 VALUE(RFP_DEPTH, 8, 6, 12, 1, false)
 VALUE(RFP_COEF, 63, 20, 100, 10, true)
@@ -52,15 +52,15 @@ VALUE(FP_BIAS, 60, 0, 250, 10, true)
 VALUE(FP_DEPTH, 10, 8, 12, 1, false)
 VALUE(FP_MARGIN_QS, 128, 20, 500, 10, true)
 
-VALUE(SEEP_MARGIN_QS, -16, -250, 0, 10, false)
-VALUE(SEEP_MARGIN_QUIET, -80, -250, -50, 10, false)
-VALUE(SEEP_MARGIN_NOISY, -17, -50, -10, 10, false)
+VALUE(SEEP_MARGIN_QS, -16, -250, 0, 10, true)
+VALUE(SEEP_MARGIN_QUIET, -80, -250, -50, 10, true)
+VALUE(SEEP_MARGIN_NOISY, -17, -50, -10, 10, true)
 
 VALUE(LMR_DEPTH, 3, 0, 0, 1, false)
-VALUE(LMR_COEF, 40, 25, 50, 5, true)
-VALUE(LMR_BIAS, 80, 50, 100, 5, true)
+VALUE(LMR_COEF, 40, 25, 50, 5, false)
+VALUE(LMR_BIAS, 80, 50, 100, 5, false)
 VALUE(LMR_HIST_DIV, 8192, 1024, 16384, 512, true)
-VALUE(LMR_MORE_COEF, 40, 20, 100, 10, true)
+VALUE(LMR_MORE_COEF, 40, 20, 100, 5, true)
 
 VALUE(IIR_DEPTH, 4, 0, 0, 10, false)
 

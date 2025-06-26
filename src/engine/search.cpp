@@ -505,7 +505,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             table_bound != transposition::bound::UPPER &&
             std::abs(table_score) < eval::score::MATE_FOUND) {
             // Gets search data
-            const i32 singular_beta = std::max(-eval::score::INFINITE + 1, table_score - depth * 2);
+            const i32 singular_beta = std::max(-eval::score::INFINITE + 1, table_score - depth);
             const i32 singular_depth = (depth - 1) / 2;
 
             // Adds excluded move
