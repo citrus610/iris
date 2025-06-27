@@ -5,7 +5,7 @@
 namespace datagen::game
 {
 
-constexpr i32 MAX_DEPTH = 10;
+constexpr i32 MAX_DEPTH = 8;
 constexpr i32 MAX_SCORE = 2000;
 
 struct SearchResult

@@ -12,7 +12,7 @@ namespace nnue
 namespace size
 {
     constexpr usize INPUT = 768;
-    constexpr usize HIDDEN = 32;
+    constexpr usize HIDDEN = 128;
 };
 
 namespace scale
