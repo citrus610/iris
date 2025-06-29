@@ -627,8 +627,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
         // Cutoff
         if (score >= beta) {
-            // History bonus
+            // History bonus and malus
             const i16 bonus = history::get_bonus(depth);
+            const i16 malus = history::get_malus(depth);
 
             if (is_quiet) {
                 // Killer
@@ -639,8 +640,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
                 data.history.cont.update(data, move, bonus);
 
                 for (const u16& visited : quiets) {
-                    data.history.quiet.update(data.board, visited, -bonus);
-                    data.history.cont.update(data, visited, -bonus);
+                    data.history.quiet.update(data.board, visited, -malus);
+                    data.history.cont.update(data, visited, -malus);
                 }
             }
             else {
@@ -650,7 +651,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
             // Even if the best move wasn't noisy, we still decrease the other noisy moves' history scores
             for (const u16& visited : noisies) {
-                data.history.noisy.update(data.board, visited, -bonus);
+                data.history.noisy.update(data.board, visited, -malus);
             }
 
             break;

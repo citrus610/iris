@@ -13,6 +13,11 @@ inline i16 get_bonus(i32 depth)
     return std::min(depth * tune::HS_BONUS_COEF + tune::HS_BONUS_BIAS, i32(tune::HS_BONUS_MAX));
 };
 
+inline i16 get_malus(i32 depth)
+{
+    return std::min(depth * tune::HS_MALUS_COEF + tune::HS_MALUS_BIAS, i32(tune::HS_MALUS_MAX));
+};
+
 template <i16 MAX>
 inline void update(i16& entry, i16 bonus)
 {
