@@ -78,10 +78,12 @@ inline Result run(Board& board)
         }
 
         // Adds position
-        result.positions.push_back(Position {
-            .fen = board.get_fen(),
-            .score = search_result.score
-        });
+        if (!board.get_checkers() && board.is_quiet(search_result.move)) {
+            result.positions.push_back(Position {
+                .fen = board.get_fen(),
+                .score = search_result.score
+            });
+        }
 
         // Updates board
         board.make(search_result.move);
