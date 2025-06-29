@@ -12,9 +12,12 @@ namespace datagen
     constexpr bool GENERATING = false;
 #endif
 
+constexpr usize MAX_VISIT = 400;
 constexpr usize MAX_OPENING = 8;
 constexpr usize MAX_POSITION = 200000000;
 constexpr usize SAVE_INTERVAL = 10;
+
+constexpr i32 MAX_OPENING_DELTA = 400;
 
 class Rng
 {
@@ -55,6 +58,14 @@ inline Board get_random_opening(Rng& rng)
     return board;
 };
 
+inline i32 get_opening_score(const Board& board)
+{
+    auto engine = search::Engine();
+    engine.set({ .hash = 8, .threads = 1 });
+
+    return game::search(engine, board).score;
+};
+
 inline void run(u64 thread_count)
 {
     // Stats
@@ -77,18 +88,33 @@ inline void run(u64 thread_count)
             std::vector<std::string> lines;
 
             while (true) {
-                // Plays a game
+                // Gets a random opening
                 auto board = get_random_opening(rng);
+
+                // Removes super unbalanced openings
+                if (std::abs(get_opening_score(board)) >= MAX_OPENING_DELTA) {
+                    continue;
+                }
+
+                // Plays a game
                 auto game_result = game::run(board);
                 
                 // Stores results
+                usize visited = 0;
+
                 for (auto& p : game_result.positions) {
+                    if (visited >= MAX_VISIT) {
+                        break;
+                    }
+
                     std::string wdl_str =
                         game_result.wdl > 0.9f ? "1.0" :
                         game_result.wdl < 0.1f ? "0.0" :
                         "0.5";
 
                     lines.push_back(p.fen + " | " + std::to_string(p.score) + " | " + wdl_str);
+
+                    visited += 1;
                 }
 
                 // Updates stats
@@ -118,11 +144,14 @@ inline void run(u64 thread_count)
 
                     lines.clear();
                     o.close();
-                }
 
-                // Reports
-                f32 win_ratio = (f32(win.load()) + f32(draw.load()) / 2.0f) / f32(win.load() + draw.load() + loss.load());
-                std::cout << "\rpositions: " << positions << "/" << MAX_POSITION << " | win ratio: " << win_ratio << "                  ";
+                    // Reports
+                    f32 win_ratio = (f32(win.load()) + f32(draw.load()) / 2.0f) / f32(win.load() + draw.load() + loss.load());
+                    std::cout <<
+                        "\rprogress: " << (f64(positions) / f64(MAX_POSITION) * 100.0) <<
+                        " | positions: " << positions << "/" << MAX_POSITION <<
+                        " | win ratio: " << win_ratio << "                        ";
+                }
 
                 // Max positions reached
                 if (positions >= MAX_POSITION) {
