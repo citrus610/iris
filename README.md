@@ -12,7 +12,7 @@
 </div>
 
 ## Overview
-Iris is an UCI chess engine written in c++ that I started in April 2025. The name Iris derives from the flower iris, which symbolizes trust, hope, knowledge, and courage. The name also alludes to Iris, the goddess of the rainbow 🏳️‍🌈.
+Iris is an UCI chess engine written in c++ that I started in May 2025. The name Iris derives from the flower iris, which symbolizes trust, hope, knowledge, and courage. The name also alludes to Iris, the goddess of the rainbow 🏳️‍🌈.
 
 ## Usage
 Iris doesn't come with a graphical user interface (GUI). To play against it, you have to download a chess GUI that supports the Universal Chess Interface (UCI) protocol such as cutechess, en-croissant, etc.
