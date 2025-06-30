@@ -1,8 +1,13 @@
 <div align="center">
 
-  <img src="logo.png" width=25% height=25%>
-  <h1></h1>
+  <img src="logo.png" width=50% height=50%>
+  <h2></h2>
   <h3>WIP UCI Chess Engine</h3>
+
+  [![License][badge-license]][link-license]
+  <br>
+  [![Release][badge-release]][link-release]
+  [![Commits][badge-commits]][link-commits]
 
 </div>
 
@@ -17,3 +22,11 @@
   - [Alexandria](https://github.com/PGG106/Alexandria)
   - [Obsidian](https://github.com/gab8192/Obsidian)
   - [Reckless](https://github.com/codedeliveryservice/Reckless)
+
+[badge-license]: https://img.shields.io/github/license/citrus610/iris?style=for-the-badge&label=license&color=success
+[badge-release]: https://img.shields.io/github/v/release/citrus610/iris?style=for-the-badge&label=official%20release
+[badge-commits]: https://img.shields.io/github/commits-since/citrus610/iris/latest?style=for-the-badge
+
+[link-license]: LICENSE
+[link-release]: https://github.com/citrus610/iris/releases/latest
+[link-commits]: https://github.com/citrus610/iris/commits/master
