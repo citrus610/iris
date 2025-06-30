@@ -1,5 +1,10 @@
-# Iris
-WIP UCI chess engine
+<div align="center">
+
+  <img src="logo.png" width=25% height=25%>
+  <h1></h1>
+  <h3>WIP UCI Chess Engine</h3>
+
+</div>
 
 ## Thanks
 - Members of the MinusKelvin & Engine Programming discord server for helping me, they are very cool ❤️
