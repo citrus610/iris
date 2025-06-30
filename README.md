@@ -43,4 +43,4 @@ make
 
 [link-license]: LICENSE
 [link-release]: https://github.com/citrus610/iris/releases/latest
-[link-commits]: https://github.com/citrus610/iris/commits/master
+[link-commits]: https://github.com/citrus610/iris/commits/main
