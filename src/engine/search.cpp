@@ -459,7 +459,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         const bool is_quiet = data.board.is_quiet(move);
 
         // Gets history score
-        const i32 history = is_quiet ? data.history.get_score_quiet(data, move) : data.history.get_score_noisy(data, move);
+        const i32 history =
+            is_quiet ?
+            data.history.quiet.get(data.board, move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
+            data.history.noisy.get(data.board, move);
 
         // Pruning
         if (!is_root && best > -eval::score::MATE_FOUND) {

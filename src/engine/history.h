@@ -79,7 +79,6 @@ private:
     Entry data[12][64] = {};
 public:
     Entry& get_entry(Board& board, const u16& move);
-    i16 get(Data& data, const u16& move);
     i16 get(Data& data, const u16& move, i32 offset);
     void update(Data& data, const u16& move, i16 bonus);
     void update(Data& data, const u16& move, i32 offset, i16 bonus);
@@ -126,8 +125,6 @@ public:
     history::corr::Table corr_pawn = {};
     history::corr::Table corr_non_pawn[2] = {};
 public:
-    i32 get_score_quiet(Data& data, const u16& move);
-    i32 get_score_noisy(Data& data, const u16& move);
     i32 get_correction(Board& board);
 public:
     void update_correction(Board& board, i16 bonus);
