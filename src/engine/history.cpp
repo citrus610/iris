@@ -82,7 +82,7 @@ i16 Table::get(Data& data, const u16& move)
     return
         this->get(data, move, 1) +
         this->get(data, move, 2) +
-        this->get(data, move, 4) / 2;
+        this->get(data, move, 4);
 };
 
 i16 Table::get(Data& data, const u16& move, i32 offset)
