@@ -98,7 +98,7 @@ void Table::update(Data& data, const u16& move, i16 bonus)
 {
     this->update(data, move, 1, bonus);
     this->update(data, move, 2, bonus);
-    this->update(data, move, 4, bonus / 2);
+    this->update(data, move, 4, bonus);
 };
 
 void Table::update(Data& data, const u16& move, i32 offset, i16 bonus)
