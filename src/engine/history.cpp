@@ -79,7 +79,10 @@ Entry& Table::get_entry(Board& board, const u16& move)
 
 i16 Table::get(Data& data, const u16& move)
 {
-    return this->get(data, move, 1) + this->get(data, move, 2);
+    return
+        this->get(data, move, 1) +
+        this->get(data, move, 2) +
+        this->get(data, move, 4) / 2;
 };
 
 i16 Table::get(Data& data, const u16& move, i32 offset)
@@ -95,6 +98,7 @@ void Table::update(Data& data, const u16& move, i16 bonus)
 {
     this->update(data, move, 1, bonus);
     this->update(data, move, 2, bonus);
+    this->update(data, move, 4, bonus / 2);
 };
 
 void Table::update(Data& data, const u16& move, i32 offset, i16 bonus)
