@@ -20,6 +20,7 @@ struct Undo
     i32 halfmove;
     u64 checkers;
     u64 blockers[2];
+    u64 threats;
 };
 
 class Board
@@ -38,6 +39,7 @@ private:
 private:
     u64 checkers;
     u64 blockers[2];
+    u64 threats;
 private:
     u64 hash;
     u64 hash_pawn;
@@ -64,6 +66,7 @@ public:
     i32 get_ply();
     u64 get_checkers();
     u64 get_blockers(i8 color);
+    u64 get_threats();
     u64 get_hash();
     u64 get_hash_pawn();
     u64 get_hash_non_pawn(i8 color);
@@ -97,6 +100,7 @@ public:
     void update_masks();
     void update_checkers();
     template <i8 COLOR> void update_blockers();
+    void update_threats();
     void print();
 };
 
@@ -198,6 +202,11 @@ inline u64 Board::get_blockers(i8 color)
     return this->blockers[color];
 };
 
+inline u64 Board::get_threats()
+{
+    return this->threats;
+};
+
 inline u64 Board::get_hash()
 {
     return this->hash;
@@ -259,5 +268,40 @@ inline void Board::update_blockers()
         if (bitboard::get_count(ray) == 1) {
             this->blockers[COLOR] |= ray;
         }
+    }
+};
+
+inline void Board::update_threats()
+{
+    const u64 occupied = this->get_occupied();
+    const u64 enemy = this->colors[!this->color];
+
+    u64 enemy_pawns = this->pieces[piece::type::PAWN] & enemy;
+    u64 enemy_knights = this->pieces[piece::type::KNIGHT] & enemy;
+    u64 enemy_bishops = (this->pieces[piece::type::BISHOP] | this->pieces[piece::type::QUEEN]) & enemy;
+    u64 enemy_rooks = (this->pieces[piece::type::ROOK] | this->pieces[piece::type::QUEEN]) & enemy;
+
+    this->threats = attack::get_king(this->get_king_square(!this->color));
+
+    if (this->color == color::WHITE) {
+        this->threats |= attack::get_pawn_span<color::BLACK>(enemy_pawns);
+    }
+    else {
+        this->threats |= attack::get_pawn_span<color::WHITE>(enemy_pawns);
+    }
+
+    while (enemy_knights)
+    {
+        this->threats |= attack::get_knight(bitboard::pop_lsb(enemy_knights));
+    }
+
+    while (enemy_bishops)
+    {
+        this->threats |= attack::get_bishop(bitboard::pop_lsb(enemy_bishops), occupied);
+    }
+
+    while (enemy_rooks)
+    {
+        this->threats |= attack::get_rook(bitboard::pop_lsb(enemy_rooks), occupied);
     }
 };

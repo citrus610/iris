@@ -34,7 +34,7 @@ constexpr i32 MAX = 16384;
 class Table
 {
 private:
-    i16 data[2][64 * 64] = { 0 };
+    i16 data[2][64 * 64][2][2] = { 0 };
 public:
     i16& get(Board& board, const u16& move);
     void update(Board& board, const u16& move, i16 bonus);

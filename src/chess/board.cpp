@@ -651,7 +651,8 @@ void Board::make(u16 move)
         .blockers = {
             this->blockers[0],
             this->blockers[1]
-        }
+        },
+        .threats = this->threats
     });
 
     // Updates move counter
@@ -834,6 +835,7 @@ void Board::unmake(u16 move)
     this->checkers = undo.checkers;
     this->blockers[0] = undo.blockers[0];
     this->blockers[1] = undo.blockers[1];
+    this->threats = undo.threats;
 
     this->color = !this->color;
     this->ply -= 1;
@@ -916,7 +918,8 @@ void Board::make_null()
         .enpassant = this->enpassant,
         .captured = piece::type::NONE,
         .halfmove = this->halfmove,
-        .checkers = this->checkers
+        .checkers = this->checkers,
+        .threats = this->threats
     });
 
     // Updates color
@@ -934,6 +937,7 @@ void Board::make_null()
 
     // Updates masks
     this->checkers = 0ULL;
+    this->update_threats();
 };
 
 void Board::unmake_null()
@@ -949,6 +953,7 @@ void Board::unmake_null()
     this->enpassant = undo.enpassant;
     this->halfmove = undo.halfmove;
     this->checkers = undo.checkers;
+    this->threats = undo.threats;
 
     this->color = !this->color;
     this->ply -= 1;
@@ -989,6 +994,7 @@ void Board::update_masks()
     this->update_checkers();
     this->update_blockers<color::WHITE>();
     this->update_blockers<color::BLACK>();
+    this->update_threats();
 };
 
 void Board::print()
