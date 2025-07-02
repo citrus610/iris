@@ -563,8 +563,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
         // Late move reduction
         if (legals > 1 + is_root * 2 &&
-            depth >= tune::LMR_DEPTH &&
-            picker.get_stage() > order::Stage::KILLER) {
+            depth >= tune::LMR_DEPTH) {
             // Gets reduction count
             i32 reduction = tune::LMR_TABLE[depth][legals];
 
