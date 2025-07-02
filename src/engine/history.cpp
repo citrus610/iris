@@ -77,11 +77,6 @@ Entry& Table::get_entry(Board& board, const u16& move)
     return this->data[piece][to];
 };
 
-i16 Table::get(Data& data, const u16& move)
-{
-    return this->get(data, move, 1) + this->get(data, move, 2);
-};
-
 i16 Table::get(Data& data, const u16& move, i32 offset)
 {
     if (data.ply < offset || data.stack[data.ply - offset].conthist == nullptr) {
@@ -95,6 +90,7 @@ void Table::update(Data& data, const u16& move, i16 bonus)
 {
     this->update(data, move, 1, bonus);
     this->update(data, move, 2, bonus);
+    this->update(data, move, 4, bonus);
 };
 
 void Table::update(Data& data, const u16& move, i32 offset, i16 bonus)
@@ -128,16 +124,6 @@ void Table::update(const i8 color, const u64& hash, i16 bonus)
 
 namespace history
 {
-
-i32 Table::get_score_quiet(Data& data, const u16& move)
-{
-    return this->quiet.get(data.board, move) + this->cont.get(data, move);
-};
-
-i32 Table::get_score_noisy(Data& data, const u16& move)
-{
-    return this->noisy.get(data.board, move);
-};
 
 i32 Table::get_correction(Board& board)
 {
