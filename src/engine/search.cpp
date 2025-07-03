@@ -473,7 +473,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             }
 
             // Futility pruning
-            i32 lmr_reduction = tune::LMR_TABLE[depth][legals];
+            i32 lmr_reduction = tune::LMR_TABLE[depth][legals] - history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
             i32 lmr_depth = std::max(0, depth - lmr_reduction);
 
             if (!picker.is_skipped() &&
