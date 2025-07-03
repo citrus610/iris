@@ -571,11 +571,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             reduction -= table_pv;
             reduction -= data.board.get_checkers() != 0ULL;
             reduction -= move == data.stack[data.ply - 1].killer;
+            reduction -= history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
             reduction += !is_improving;
-
-            if (is_quiet) {
-                reduction -= history / tune::LMR_HIST_DIV;
-            }
 
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
