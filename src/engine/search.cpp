@@ -186,7 +186,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     while (true)
     {
         // Principle variation search
-        score = this->pvsearch<node::Type::ROOT>(data, alpha, beta, depth);
+        score = this->pvsearch<node::Type::ROOT>(data, alpha, beta, depth, false);
 
         // Aborts
         if (!this->running.test()) {
@@ -213,7 +213,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
 };
 
 template <node::Type NODE>
-i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
+i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 {
     // Gets node type
     constexpr bool is_root = NODE == node::Type::ROOT;
@@ -403,7 +403,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
         data.make_null();
 
         // Scouts
-        i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction);
+        i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction, false);
 
         // Unmakes
         data.unmake_null();
@@ -515,7 +515,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             data.stack[data.ply].excluded = move;
 
             // Search
-            i32 score = this->pvsearch<node::Type::NORMAL>(data, singular_beta - 1, singular_beta, singular_depth);
+            i32 score = this->pvsearch<node::Type::NORMAL>(data, singular_beta - 1, singular_beta, singular_depth, is_cut);
 
             // Removes excluded move
             data.stack[data.ply].excluded = move::NONE;
@@ -578,7 +578,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
             // Scouts
-            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced);
+            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced, true);
 
             // Failed
             if (score > alpha && depth_reduced < depth_next) {
@@ -588,18 +588,18 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth)
 
                 // Searches again
                 if (depth_reduced < depth_next) {
-                    score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+                    score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next, !is_cut);
                 }
             }
         }
         // Scouts with null window for non pv nodes
         else if (!is_pv || legals > 1) {
-            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next);
+            score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next, !is_cut);
         }
 
         // Searches as pv node for first child or researches after scouting
         if (is_pv && (legals == 1 || score > alpha)) {
-            score = -this->pvsearch<node::Type::PV>(data, -beta, -alpha, depth_next);
+            score = -this->pvsearch<node::Type::PV>(data, -beta, -alpha, depth_next, false);
         }
 
         // Unmakes move
@@ -940,9 +940,9 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 template bool Engine::search<true>(Board, uci::parse::Go);
 template bool Engine::search<false>(Board, uci::parse::Go);
 
-template i32 Engine::pvsearch<node::Type::ROOT>(Data&, i32, i32, i32);
-template i32 Engine::pvsearch<node::Type::PV>(Data&, i32, i32, i32);
-template i32 Engine::pvsearch<node::Type::NORMAL>(Data&, i32, i32, i32);
+template i32 Engine::pvsearch<node::Type::ROOT>(Data&, i32, i32, i32, bool);
+template i32 Engine::pvsearch<node::Type::PV>(Data&, i32, i32, i32, bool);
+template i32 Engine::pvsearch<node::Type::NORMAL>(Data&, i32, i32, i32, bool);
 
 template i32 Engine::qsearch<true>(Data&, i32, i32);
 template i32 Engine::qsearch<false>(Data&, i32, i32);

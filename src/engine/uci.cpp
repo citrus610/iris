@@ -115,30 +115,30 @@ std::optional<Go> go(std::string in)
         }
 
         if (tokens[i] == "winc") {
-            option.increment[color::WHITE] = std::stoi(tokens[i + 1]);
+            option.increment[color::WHITE] = std::max(std::stoi(tokens[i + 1]), 0);
         }
 
         if (tokens[i] == "binc") {
-            option.increment[color::BLACK] = std::stoi(tokens[i + 1]);
+            option.increment[color::BLACK] = std::max(std::stoi(tokens[i + 1]), 0);
         }
 
         if (tokens[i] == "wtime") {
-            option.time[color::WHITE] = std::stoi(tokens[i + 1]);
+            option.time[color::WHITE] = std::max(std::stoi(tokens[i + 1]), 1);
             option.infinite = false;
         }
 
         if (tokens[i] == "btime") {
-            option.time[color::BLACK] = std::stoi(tokens[i + 1]);
+            option.time[color::BLACK] = std::max(std::stoi(tokens[i + 1]), 1);
             option.infinite = false;
         }
 
         if (tokens[i] == "depth") {
-            option.depth = std::stoi(tokens[i + 1]);
+            option.depth = std::max(std::stoi(tokens[i + 1]), 1);
             option.infinite = false;
         }
 
         if (tokens[i] == "movestogo") {
-            option.movestogo = std::stoi(tokens[i + 1]);
+            option.movestogo = std::max(std::stoi(tokens[i + 1]), 0);
         }
     }
 
