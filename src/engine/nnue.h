@@ -18,7 +18,7 @@ namespace size
 namespace scale
 {
     constexpr i32 EVAL = 400;
-    constexpr i32 L0 = 256;
+    constexpr i32 L0 = 255;
     constexpr i32 L1 = 64;
 };
 
