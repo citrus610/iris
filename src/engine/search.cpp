@@ -361,56 +361,52 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
     }
 
-    // Razoring
-    if (!is_pv &&
-        !is_singular &&
-        alpha < 2000 &&
-        eval + tune::RAZOR_COEF * depth < alpha) {
-        // Scouts with qsearch
-        const i32 score = this->qsearch<false>(data, alpha, alpha + 1);
+    // Pruning
+    if (!is_pv && !is_singular) {
+        // Razoring
+        if (alpha < 2000 && eval + tune::RAZOR_COEF * depth < alpha) {
+            // Scouts with qsearch
+            const i32 score = this->qsearch<false>(data, alpha, alpha + 1);
 
-        if (score <= alpha) {
-            return score;
+            if (score <= alpha) {
+                return score;
+            }
         }
-    }
 
-    // Reverse futility pruning
-    if (!is_pv &&
-        !is_singular &&
-        depth <= tune::RFP_DEPTH &&
-        eval < eval::score::MATE_FOUND &&
-        eval >= beta + std::max(depth - is_improving, 1) * tune::RFP_COEF) {
-        return eval;
-    }
+        // Reverse futility pruning
+        if (depth <= tune::RFP_DEPTH &&
+            eval < eval::score::MATE_FOUND &&
+            eval >= beta + std::max(depth - is_improving, 1) * tune::RFP_COEF) {
+            return eval;
+        }
 
-    // Null move pruning
-    if (!is_pv &&
-        !is_singular &&
-        data.stack[data.ply - 1].move != move::NONE &&
-        eval >= beta &&
-        depth >= tune::NMP_DEPTH &&
-        data.board.has_non_pawn(data.board.get_color())) {
-        // Prefetch table
-        this->table.prefetch(data.board.get_hash_after(move::NONE));
+        // Null move pruning
+        if (data.stack[data.ply - 1].move != move::NONE &&
+            eval >= beta &&
+            depth >= tune::NMP_DEPTH &&
+            data.board.has_non_pawn(data.board.get_color())) {
+            // Prefetch table
+            this->table.prefetch(data.board.get_hash_after(move::NONE));
 
-        // Calculates reduction count based on depth and eval
-        i32 reduction =
-            tune::NMP_REDUCTION +
-            depth / tune::NMP_DIVISOR_DEPTH +
-            std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, i32(tune::NMP_REDUCTION_EVAL_MAX));
-        
-        // Makes null move
-        data.make_null();
+            // Calculates reduction count based on depth and eval
+            i32 reduction =
+                tune::NMP_REDUCTION +
+                depth / tune::NMP_DIVISOR_DEPTH +
+                std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, i32(tune::NMP_REDUCTION_EVAL_MAX));
+            
+            // Makes null move
+            data.make_null();
 
-        // Scouts
-        i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction, false);
+            // Scouts
+            i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction, false);
 
-        // Unmakes
-        data.unmake_null();
+            // Unmakes
+            data.unmake_null();
 
-        // Returns score if fail high, we don't return false mate score
-        if (score >= beta) {
-            return score < eval::score::MATE_FOUND ? score : beta;
+            // Returns score if fail high, we don't return false mate score
+            if (score >= beta) {
+                return score < eval::score::MATE_FOUND ? score : beta;
+            }
         }
     }
 
