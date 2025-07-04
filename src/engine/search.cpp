@@ -574,7 +574,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             reduction += is_cut;
 
             // Clamps depth to avoid qsearch
-            i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
+            i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next + (is_pv || is_cut));
 
             // Scouts
             score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced, true);
