@@ -219,6 +219,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     constexpr bool is_root = NODE == node::Type::ROOT;
     constexpr bool is_pv = NODE != node::Type::NORMAL;
 
+    // Clears pv
+    data.stack[data.ply].pv.count = 0;
+
     // Checks upcomming repetition
     if (!is_root && alpha < eval::score::DRAW && data.board.has_upcomming_repetition()) {
         alpha = eval::score::DRAW;
@@ -250,8 +253,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         return is_in_check ? eval::score::DRAW : eval::get(data.board, data.nnue);
     }
 
-    // Updates data
-    data.stack[data.ply].pv.count = 0;
+    // Updates stat
     data.nodes += 1;
     data.seldepth = std::max(data.seldepth, data.ply);
 
@@ -719,6 +721,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 template <bool PV>
 i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 {
+    // Clears pv
+    data.stack[data.ply].pv.count = 0;
+
     // Aborts search
     if (data.id == 0 && (data.nodes & 0xFFF) == 0 && data.nodes > 0 && this->timer.is_over_hard()) {
         this->running.clear();
@@ -736,8 +741,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         return is_in_check ? eval::score::DRAW : eval::get(data.board, data.nnue);
     }
 
-    // Updates data
-    data.stack[data.ply].pv.count = 0;
+    // Updates stat
     data.nodes += 1;
     data.seldepth = std::max(data.seldepth, data.ply);
 
