@@ -410,6 +410,82 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 return score < eval::score::MATE_FOUND ? score : beta;
             }
         }
+
+        // Probabilistic cutoff
+        const i32 probcut_beta = beta + tune::PROBCUT_MARGIN;
+
+        if (depth >= tune::PROBCUT_DEPTH &&
+            std::abs(beta) < eval::score::MATE_FOUND &&
+            (table_score == eval::score::NONE || table_score >= probcut_beta)) {
+            // Gets probcut depth
+            const i32 probcut_depth = depth - tune::PROBCUT_REDUCTION;
+
+            assert(probcut_depth > 0);
+
+            // Generates good noisy moves
+            auto picker = order::Picker(data, move::NONE, true, probcut_beta - eval_static);
+
+            // Iterates moves
+            while (true)
+            {
+                // Skips baddies
+                if (picker.get_stage() == order::Stage::NOISY_BAD) {
+                    break;
+                }
+
+                // Gets move
+                const u16 move = picker.get(data);
+
+                if (!move) {
+                    break;
+                }
+
+                // Checks legality
+                if (!data.board.is_legal(move)) {
+                    continue;
+                }
+
+                // Prefetches table
+                this->table.prefetch(data.board.get_hash_after(move));
+
+                // Makes
+                data.make(move);
+
+                // Searches with qsearch
+                i32 score = -this->qsearch<false>(data, -probcut_beta, -probcut_beta + 1);
+
+                // Searches again with pvsearch if the score from qsearch is good
+                if (score >= probcut_beta) {
+                    score = -this->pvsearch<node::Type::NORMAL>(data, -probcut_beta, -probcut_beta + 1, probcut_depth, !is_cut);
+                }
+
+                // Unmakes
+                data.unmake(move);
+
+                // Aborts search
+                if (!this->running.test()) {
+                    return eval::score::DRAW;
+                }
+
+                // Returns if the score is good
+                if (score >= probcut_beta) {
+                    // Stores to table
+                    table_entry->set(
+                        data.board.get_hash(),
+                        move,
+                        score,
+                        eval_raw,
+                        probcut_depth + 1,
+                        this->table.age,
+                        table_pv,
+                        transposition::bound::LOWER,
+                        data.ply
+                    );
+
+                    return score;
+                }
+            }
+        }
     }
 
     // Internal iterative reduction
