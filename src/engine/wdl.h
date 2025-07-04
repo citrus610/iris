@@ -5,9 +5,9 @@
 namespace wdl
 {
 
-constexpr i32 PAWN_VALUE_NORMALIZED = 614;
-constexpr f64 A[] = { 585.77671857, -1551.42707117, 1130.59490162, 449.22546853 };
-constexpr f64 B[] = { 141.12371387, -273.68062251, 331.45361514, 82.15651932 };
+constexpr i32 PAWN_VALUE_NORMALIZED = 100;
+constexpr f64 A[] = { 161.09824993, -431.48193676, 321.58846951, 112.83569357 };
+constexpr f64 B[] = { 42.14414753, -95.37235696, 114.89052735, 14.85352801 };
 
 inline i32 get_material(Board& board)
 {
