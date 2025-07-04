@@ -5,7 +5,7 @@
 namespace wdl
 {
 
-constexpr i32 PAWN_VALUE_NORMALIZED = 100;
+constexpr i32 PAWN_VALUE_NORMALIZED = 163;
 constexpr f64 A[] = { 161.09824993, -431.48193676, 321.58846951, 112.83569357 };
 constexpr f64 B[] = { 42.14414753, -95.37235696, 114.89052735, 14.85352801 };
 
