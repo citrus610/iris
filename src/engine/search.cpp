@@ -118,7 +118,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                     uci::print::info(
                         i,
                         data->seldepth,
-                        score,
+                        wdl::get_score_normalized(score, wdl::get_material(board)),
                         data->nodes,
                         this->nodes.load() * 1000 / std::max(this->time.load(), u64(1)),
                         this->table.hashfull(),

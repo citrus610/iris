@@ -7,6 +7,7 @@
 #include "tune.h"
 #include "node.h"
 #include "see.h"
+#include "wdl.h"
 
 namespace search
 {
