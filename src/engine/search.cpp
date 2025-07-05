@@ -97,7 +97,7 @@ bool Engine::search(Board uci_board, uci::parse::Go uci_go)
                 if (!this->running.test()) {
                     score = score_old;
                 }
-                
+
                 // Updates score
                 score_old = score;
 
@@ -305,6 +305,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     }
 
     // Gets important values for search, prunings, extensions
+    // Initial depth
+    const i32 depth_old = depth;
+
     // Resets killer move
     data.stack[data.ply + 1].killer = move::NONE;
 
@@ -365,6 +368,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
     // Pruning
     if (!is_pv && !is_singular) {
+        // Hindsight reduction
+        if (data.stack[data.ply - 1].reduction >= tune::HR_MIN &&
+            data.stack[data.ply - 1].eval != eval::score::NONE &&
+            data.stack[data.ply - 1].eval + eval_static < 0) {
+            depth += 1;
+        }
+
         // Razoring
         if (alpha < 2000 && eval + tune::RAZOR_COEF * depth < alpha) {
             // Scouts with qsearch
@@ -400,6 +410,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             data.make_null();
 
             // Scouts
+            data.stack[data.ply - 1].reduction = depth_old - depth + reduction - 1;
             i32 score = -this->pvsearch<node::Type::NORMAL>(data, -beta, -beta + 1, depth - reduction, false);
 
             // Unmakes
@@ -577,6 +588,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
             // Scouts
+            data.stack[data.ply - 1].reduction = depth_old - depth_reduced - 1;
             score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced, true);
 
             // Failed
@@ -587,17 +599,20 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
                 // Searches again
                 if (depth_reduced < depth_next) {
+                    data.stack[data.ply - 1].reduction = depth_old - depth_next - 1;
                     score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next, !is_cut);
                 }
             }
         }
         // Scouts with null window for non pv nodes
         else if (!is_pv || legals > 1) {
+            data.stack[data.ply - 1].reduction = depth_old - depth_next - 1;
             score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next, !is_cut);
         }
 
         // Searches as pv node for first child or researches after scouting
         if (is_pv && (legals == 1 || score > alpha)) {
+            data.stack[data.ply - 1].reduction = 0;
             score = -this->pvsearch<node::Type::PV>(data, -beta, -alpha, depth_next, false);
         }
 
