@@ -36,12 +36,13 @@ i16& Table::get(Board& board, const u16& move, i8 captured)
 {
     assert(!board.is_quiet(move));
 
-    const i8 to = move::get_to(move);
-    const i8 piece = board.get_piece_at(move::get_from(move));
+    const auto to = move::get_to(move);
+    const auto piece = board.get_piece_at(move::get_from(move));
+    const bool is_threaten = board.get_threats() & bitboard::create(to);
     
     assert(piece != piece::NONE);
 
-    return this->data[piece][to][captured];
+    return this->data[piece][to][captured][is_threaten];
 };
 
 void Table::update(Board& board, const u16& move, i16 bonus)
