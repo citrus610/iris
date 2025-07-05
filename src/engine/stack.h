@@ -11,9 +11,9 @@ struct Entry
 {
     pv::Line pv = pv::Line();
     u16 move = move::NONE;
-    i32 eval = eval::score::NONE;
     u16 killer = move::NONE;
     u16 excluded = move::NONE;
+    i32 eval = eval::score::NONE;
     history::cont::Entry* conthist = nullptr;
 };
 
