@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     auto go = uci::parse::Go();
     auto engine = search::Engine();
 
-    const std::string VERSION = "v1.1";
+    const std::string VERSION = "v2.0";
     const std::string NAME = "Iris";
     const std::string AUTHOR = "citrus610";
 
