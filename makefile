@@ -37,7 +37,7 @@ endif
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
 EXE := $(EXE)$(SUFFIX)
 
-.PHONY: all build loadnet iris v1 v2 v3 v4 release datagen cleannet clean
+.PHONY: all build loadnet iris v1 v2 v3 release datagen cleannet clean
 
 all: iris
 
@@ -55,10 +55,7 @@ v2:
 v3:
 	@$(CXX) $(CXXFLAGS) -march=x86-64-v3 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v3$(SUFFIX)
 
-v4:
-	@$(CXX) $(CXXFLAGS) -march=x86-64-v4 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v4$(SUFFIX)
-
-release: loadnet v1 v2 v3 v4 cleannet
+release: loadnet v1 v2 v3 cleannet
 
 datagen: loadnet
 	@mkdir -p bin

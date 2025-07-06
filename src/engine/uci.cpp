@@ -138,7 +138,7 @@ std::optional<Go> go(std::string in)
         }
 
         if (tokens[i] == "movestogo") {
-            option.movestogo = std::max(std::stoi(tokens[i + 1]), 0);
+            option.movestogo = std::max(std::stoi(tokens[i + 1]), 1);
         }
     }
 
