@@ -172,6 +172,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
 {
     i32 score = -eval::score::INFINITE;
     i32 delta = tune::AW_DELTA;
+    i32 reduction = 0;
 
     // Sets the window
     i32 alpha = -eval::score::INFINITE;
@@ -186,7 +187,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
     while (true)
     {
         // Principle variation search
-        score = this->pvsearch<node::Type::ROOT>(data, alpha, beta, depth, false);
+        score = this->pvsearch<node::Type::ROOT>(data, alpha, beta, std::max(depth - reduction, 1), false);
 
         // Aborts
         if (!this->running.test()) {
@@ -197,9 +198,11 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
         if (score <= alpha) {
             beta = (alpha + beta) / 2;
             alpha = std::max(score - delta, -eval::score::INFINITE);
+            reduction = 0;
         }
         else if (score >= beta) {
             beta = std::min(score + delta, eval::score::INFINITE);
+            reduction += 1;
         }
         else {
             break;
