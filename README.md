@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="logo.png" width=50% height=50%>
+  <img src="logo.png" width=512>
   <h2></h2>
   <h3>WIP UCI Chess Engine</h3>
 
