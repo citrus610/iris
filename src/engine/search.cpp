@@ -473,15 +473,24 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 picker.skip_quiets();
             }
 
-            // Futility pruning
+            // Gets potential reduced depth from late move reduction
             i32 lmr_reduction = tune::LMR_TABLE[depth][legals] - history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
             i32 lmr_depth = std::max(0, depth - lmr_reduction);
+            
+            // Futility pruning
+            const i32 futility = eval_static + lmr_depth * tune::FP_COEF + tune::FP_BIAS;
 
             if (!picker.is_skipped() &&
                 !is_in_check &&
                 is_quiet &&
                 lmr_depth <= tune::FP_DEPTH &&
-                eval_static + lmr_depth * tune::FP_COEF + tune::FP_BIAS <= alpha) {
+                futility <= alpha) {
+                // Updates best score
+                if (std::abs(best) < eval::score::MATE_FOUND && best < futility) {
+                    best = futility;
+                }
+                    
+                // Skips
                 picker.skip_quiets();
                 continue;
             }
