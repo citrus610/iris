@@ -57,16 +57,15 @@ inline Result run(Board& board)
     auto result = Result();
 
     // Inits engines
-    search::Engine engines[2] = { search::Engine(), search::Engine() };
+    auto engine = search::Engine();
 
-    engines[0].set({ .hash = 8, .threads = 1 });
-    engines[1].set({ .hash = 8, .threads = 1 });
+    engine.set({ .hash = 8, .threads = 1 });
 
     // Plays
     while (true)
     {
         // Search
-        auto search_result = search(engines[board.get_color()], board);
+        auto search_result = search(engine, board);
 
         // Updates score to white relative
         search_result.score = board.get_color() == color::WHITE ? search_result.score : -search_result.score;

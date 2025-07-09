@@ -55,7 +55,7 @@ constexpr u64 BISHOP[64] = {
 
 inline i32 get_index(const Entry& entry, u64 occupied)
 {
-#ifdef USE_PEXT
+#ifdef PEXT
     return _pext_u64(occupied, entry.mask);
 #else
     return ((occupied & entry.mask) * entry.magic) >> entry.shift;
