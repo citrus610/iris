@@ -21,9 +21,9 @@ else
 endif
 
 ifeq ($(DEBUG), true)
-	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -std=c++20 -Wall -Og -g -no-pie
+	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -std=c++20 -Wall -pthread -Og -g -no-pie
 else
-	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -DNDEBUG -std=c++20 -Wall -O3 -flto $(CXXPROF)
+	CXXFLAGS += -fdiagnostics-color=always -DUNICODE -DNDEBUG -std=c++20 -Wall -O3 -pthread -flto $(CXXPROF)
 endif
 
 ifeq ($(TUNE), true)
@@ -31,7 +31,7 @@ ifeq ($(TUNE), true)
 endif
 
 ifeq ($(PEXT), true)
-	CXXFLAGS += -DUSE_PEXT
+	CXXFLAGS += -DPEXT
 endif
 
 SRC := src/chess/*.cpp src/engine/*.cpp src/*.cpp
