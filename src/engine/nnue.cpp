@@ -11,17 +11,16 @@ INCBIN(nnue_raw, NNUE);
 
 Net::Net()
 {
+    this->index = 0;
     this->clear();
-    this->stack.reserve(512);
-    this->stack.clear();
 };
 
 i32 Net::get_eval(i8 color)
 {
     i32 score = 0;
 
-    score += get_linear<size::HIDDEN, scale::L0>(this->accumulator.data[color], PARAMS.out_weights[0]);
-    score += get_linear<size::HIDDEN, scale::L0>(this->accumulator.data[!color], PARAMS.out_weights[1]);
+    score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[color], PARAMS.out_weights[0]);
+    score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[!color], PARAMS.out_weights[1]);
 
     return (score / scale::L0 + PARAMS.out_bias) * scale::EVAL / (scale::L0 * scale::L1);
 };
@@ -33,12 +32,12 @@ void Net::update(i8 color, i8 type, i8 square)
 
     for (usize i = 0; i < size::HIDDEN; ++i) {
         if constexpr (ADD) {
-            this->accumulator.data[0][i] += PARAMS.in_weights[index_white][i];
-            this->accumulator.data[1][i] += PARAMS.in_weights[index_black][i];
+            this->stack[this->index].data[0][i] += PARAMS.in_weights[index_white][i];
+            this->stack[this->index].data[1][i] += PARAMS.in_weights[index_black][i];
         }
         else {
-            this->accumulator.data[0][i] -= PARAMS.in_weights[index_white][i];
-            this->accumulator.data[1][i] -= PARAMS.in_weights[index_black][i];
+            this->stack[this->index].data[0][i] -= PARAMS.in_weights[index_white][i];
+            this->stack[this->index].data[1][i] -= PARAMS.in_weights[index_black][i];
         }
     }
 };
@@ -47,7 +46,7 @@ void Net::clear()
 {
     for (i8 color = 0; color < 2; ++color) {
         for (usize i = 0; i < size::HIDDEN; ++i) {
-            this->accumulator.data[color][i] = PARAMS.in_biases[i];
+            this->stack[this->index].data[color][i] = PARAMS.in_biases[i];
         }
     }
 };
@@ -73,8 +72,10 @@ void Net::refresh(Board& board)
 void Net::make(Board& board, const u16& move)
 {
     // Pushes to stack
-    this->stack.push_back(this->accumulator);
+    this->index += 1;
+    this->stack[this->index] = this->stack[this->index - 1];
 
+    // Gets move data
     const auto move_type = move::get_type(move);
     const auto from = move::get_from(move);
     const auto to = move::get_to(move);
@@ -131,10 +132,9 @@ void Net::make(Board& board, const u16& move)
 
 void Net::unmake()
 {
-    assert(!this->stack.empty());
+    assert(this->index > 0);
 
-    this->accumulator = this->stack.back();
-    this->stack.pop_back();
+    this->index -= 1;
 };
 
 void init()
