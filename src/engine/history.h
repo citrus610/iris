@@ -3,6 +3,10 @@
 #include "eval.h"
 #include "tune.h"
 
+using PawnHistory = int16_t[1024][64][12];
+
+constexpr usize a = sizeof(PawnHistory);
+
 struct Data;
 
 namespace history

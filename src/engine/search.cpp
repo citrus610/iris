@@ -465,6 +465,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             data.history.quiet.get(data.board, move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
             data.history.noisy.get(data.board, move);
 
+        // Gets reduction
+        i32 reduction = tune::LMR_TABLE[depth][legals];
+
+        reduction -= history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
+
         // Pruning
         if (!is_root && best > -eval::score::MATE_FOUND) {
             // Late move pruning
@@ -473,17 +478,16 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 picker.skip_quiets();
             }
 
-            // Gets potential reduced depth from late move reduction
-            i32 lmr_reduction = tune::LMR_TABLE[depth][legals] - history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
-            i32 lmr_depth = std::max(0, depth - lmr_reduction);
+            // Gets reduced depth
+            i32 depth_reduced = std::max(0, depth - reduction);
             
             // Futility pruning
-            const i32 futility = eval_static + lmr_depth * tune::FP_COEF + tune::FP_BIAS;
+            const i32 futility = eval_static + depth_reduced * tune::FP_COEF + tune::FP_BIAS;
 
             if (!picker.is_skipped() &&
                 !is_in_check &&
                 is_quiet &&
-                lmr_depth <= tune::FP_DEPTH &&
+                depth_reduced <= tune::FP_DEPTH &&
                 futility <= alpha) {
                 // Updates best score
                 if (std::abs(best) < eval::score::MATE_FOUND && best < futility) {
@@ -498,8 +502,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             // SEE pruning
             i32 see_margin =
                 is_quiet ?
-                tune::SEEP_MARGIN_QUIET * lmr_depth :
-                tune::SEEP_MARGIN_NOISY * lmr_depth * lmr_depth;
+                tune::SEEP_MARGIN_QUIET * depth_reduced :
+                tune::SEEP_MARGIN_NOISY * depth_reduced * depth_reduced;
             
             if (picker.get_stage() > order::Stage::KILLER && !see::is_ok(data.board, move, see_margin)) {
                 continue;
@@ -575,13 +579,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         if (legals > 1 + is_root * 2 &&
             depth >= tune::LMR_DEPTH &&
             picker.get_stage() > order::Stage::KILLER) {
-            // Gets reduction count
-            i32 reduction = tune::LMR_TABLE[depth][legals];
-
+            // Updates reduction
             reduction -= table_pv;
             reduction -= data.board.get_checkers() != 0ULL;
             reduction -= move == data.stack[data.ply - 1].killer;
-            reduction -= history / (is_quiet ? tune::LMR_HIST_QUIET_DIV : tune::LMR_HIST_NOISY_DIV);
             reduction += !is_improving;
             reduction += is_cut;
 
