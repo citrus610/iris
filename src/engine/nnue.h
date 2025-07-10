@@ -40,8 +40,8 @@ inline Parameters PARAMS;
 class Net
 {
 private:
-    Accumulator accumulator;
-    std::vector<Accumulator> stack;
+    Accumulator stack[MAX_PLY + 8];
+    usize index;
 public:
     Net();
 public:
