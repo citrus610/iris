@@ -298,7 +298,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         table_pv |= table_entry->is_pv();
 
         // Cutoff
-        if (!is_pv && table_score != eval::score::NONE && table_depth >= depth) {
+        if (!is_pv && table_score != eval::score::NONE && table_depth >= depth && data.board.get_halfmove_count() < 90) {
             if ((table_bound == transposition::bound::EXACT) ||
                 (table_bound == transposition::bound::LOWER && table_score >= beta) ||
                 (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
