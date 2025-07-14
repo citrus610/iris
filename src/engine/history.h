@@ -36,8 +36,8 @@ class Table
 private:
     i16 data[2][64 * 64][2][2] = { 0 };
 public:
-    i16& get(Board& board, const u16& move);
-    void update(Board& board, const u16& move, i16 bonus);
+    i16& get(const i8 color, const u64& threat, const u16& move);
+    void update(const i8 color, const u64& threat, const u16& move, i16 bonus);
 };
 
 };
