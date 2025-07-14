@@ -4,20 +4,20 @@
 namespace history::quiet
 {
 
-i16& Table::get(Board& board, const u16& move)
+i16& Table::get(const i8 color, const u64& threat, const u16& move)
 {
     assert(square::is_valid(move::get_from(move)));
     assert(square::is_valid(move::get_to(move)));
 
-    const bool is_threaten_from = board.get_threats() & bitboard::create(move::get_from(move));
-    const bool is_threaten_to = board.get_threats() & bitboard::create(move::get_to(move));
+    const bool is_threaten_from = threat & bitboard::create(move::get_from(move));
+    const bool is_threaten_to = threat & bitboard::create(move::get_to(move));
 
-    return this->data[board.get_color()][move & 0xFFF][is_threaten_from][is_threaten_to];
+    return this->data[color][move & 0xFFF][is_threaten_from][is_threaten_to];
 };
 
-void Table::update(Board& board, const u16& move, i16 bonus)
+void Table::update(const i8 color, const u64& threat, const u16& move, i16 bonus)
 {
-    history::update<history::quiet::MAX>(this->get(board, move), bonus);
+    history::update<history::quiet::MAX>(this->get(color, threat, move), bonus);
 };
 
 };

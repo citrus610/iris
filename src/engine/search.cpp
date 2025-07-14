@@ -366,6 +366,20 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
     }
 
+    // Static eval quiet history update
+    if (!is_root &&
+        !is_singular &&
+        data.stack[data.ply - 1].move != move::NONE &&
+        data.stack[data.ply - 1].eval != eval::score::NONE &&
+        data.stack[data.ply - 1].is_quiet) {
+        // Gets bonus
+        const i32 value = eval_static + data.stack[data.ply - 1].eval;
+        const i32 bonus = std::clamp(-tune::SEQH_COEF * value / 64, -tune::SEQH_MAX, tune::SEQH_MAX);
+
+        // Updates quiet history
+        data.history.quiet.update(!data.board.get_color(), data.board.get_undo().threats, data.stack[data.ply - 1].move, bonus);
+    }
+
     // Pruning
     if (!is_pv && !is_singular) {
         // Razoring
@@ -459,10 +473,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         // Checks for quiet
         const bool is_quiet = data.board.is_quiet(move);
 
+        data.stack[data.ply].is_quiet = is_quiet;
+
         // Gets history score
         const i32 history =
             is_quiet ?
-            data.history.quiet.get(data.board, move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
+            data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
             data.history.noisy.get(data.board, move);
 
         // Gets reduction
@@ -652,11 +668,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 data.stack[data.ply].killer = move;
 
                 // Quiet history
-                data.history.quiet.update(data.board, move, bonus);
+                data.history.quiet.update(data.board.get_color(), data.board.get_threats(), move, bonus);
                 data.history.cont.update(data, move, bonus);
 
                 for (const u16& visited : quiets) {
-                    data.history.quiet.update(data.board, visited, -malus);
+                    data.history.quiet.update(data.board.get_color(), data.board.get_threats(), visited, -malus);
                     data.history.cont.update(data, visited, -malus);
                 }
             }
