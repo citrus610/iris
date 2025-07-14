@@ -14,7 +14,6 @@ struct Entry
     u16 killer = move::NONE;
     u16 excluded = move::NONE;
     i32 eval = eval::score::NONE;
-    bool is_quiet = false;
     history::cont::Entry* conthist = nullptr;
 };
 

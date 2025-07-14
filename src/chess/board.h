@@ -70,7 +70,6 @@ public:
     u64 get_hash();
     u64 get_hash_pawn();
     u64 get_hash_non_pawn(i8 color);
-    const Undo& get_undo() const;
     std::string get_fen();
 public:
     i8 get_king_square(i8 color);
@@ -223,13 +222,6 @@ inline u64 Board::get_hash_non_pawn(i8 color)
     assert(color::is_valid(color));
 
     return this->hash_non_pawn[color];
-};
-
-inline const Undo& Board::get_undo() const
-{
-    assert(!this->history.empty());
-
-    return this->history.back();
 };
 
 inline void Board::update_checkers()
