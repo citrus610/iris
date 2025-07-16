@@ -118,6 +118,8 @@ void Board::set_fen(const std::string& fen)
     this->hash_pawn = this->get_hash_pawn_slow();
     this->hash_non_pawn[color::WHITE] = this->get_hash_non_pawn_slow(color::WHITE);
     this->hash_non_pawn[color::BLACK] = this->get_hash_non_pawn_slow(color::BLACK);
+    this->hash_minor = this->get_hash_minor_slow();
+    this->hash_major = this->get_hash_major_slow();
 };
 
 std::string Board::get_fen()
@@ -295,6 +297,46 @@ u64 Board::get_hash_non_pawn_slow(i8 color)
         }
 
         result ^= zobrist::get_piece(piece::create(type, color), square);
+    }
+
+    return result;
+};
+
+u64 Board::get_hash_minor_slow()
+{
+    u64 result = 0ULL;
+
+    for (i8 square = 0; square < 64; ++square) {
+        const auto piece = this->get_piece_at(square);
+        const auto type = this->get_type_at(square);
+
+        if (piece == piece::NONE) {
+            continue;
+        }
+
+        if (type == piece::type::KNIGHT || type == piece::type::BISHOP || type == piece::type::KING) {
+            result ^= zobrist::get_piece(piece, square);
+        }
+    }
+
+    return result;
+};
+
+u64 Board::get_hash_major_slow()
+{
+    u64 result = 0ULL;
+
+    for (i8 square = 0; square < 64; ++square) {
+        const auto piece = this->get_piece_at(square);
+        const auto type = this->get_type_at(square);
+
+        if (piece == piece::NONE) {
+            continue;
+        }
+
+        if (type == piece::type::ROOK || type == piece::type::QUEEN || type == piece::type::KING) {
+            result ^= zobrist::get_piece(piece, square);
+        }
     }
 
     return result;
@@ -643,6 +685,8 @@ void Board::make(u16 move)
             this->hash_non_pawn[0],
             this->hash_non_pawn[1]
         },
+        .hash_minor = this->hash_minor,
+        .hash_major = this->hash_major,
         .castling = this->castling,
         .enpassant = this->enpassant,
         .captured = captured,
@@ -674,13 +718,22 @@ void Board::make(u16 move)
         this->remove(captured, !this->color, move_to);
 
         // Updates hash
-        this->hash ^= zobrist::get_piece(piece::create(captured, !this->color), move_to);
+        const auto hash_piece = zobrist::get_piece(piece::create(captured, !this->color), move_to);
+
+        this->hash ^= hash_piece;
 
         if (captured == piece::type::PAWN) {
-            this->hash_pawn ^= zobrist::get_piece(piece::create(captured, !this->color), move_to);
+            this->hash_pawn ^= hash_piece;
         }
         else {
-            this->hash_non_pawn[!this->color] ^= zobrist::get_piece(piece::create(captured, !this->color), move_to);
+            this->hash_non_pawn[!this->color] ^= hash_piece;
+
+            if (captured <= piece::type::BISHOP) {
+                this->hash_minor ^= hash_piece;
+            }
+            else {
+                this->hash_major ^= hash_piece;
+            }
         }
 
         // Removes castling right if a rook is captured
@@ -756,6 +809,14 @@ void Board::make(u16 move)
         this->hash_non_pawn[this->color] ^= zobrist::get_piece(king, king_to);
         this->hash_non_pawn[this->color] ^= zobrist::get_piece(rook, move_to);
         this->hash_non_pawn[this->color] ^= zobrist::get_piece(rook, rook_to);
+
+        this->hash_minor ^= zobrist::get_piece(king, move_from);
+        this->hash_minor ^= zobrist::get_piece(king, king_to);
+
+        this->hash_major ^= zobrist::get_piece(king, move_from);
+        this->hash_major ^= zobrist::get_piece(king, king_to);
+        this->hash_major ^= zobrist::get_piece(rook, move_to);
+        this->hash_major ^= zobrist::get_piece(rook, rook_to);
     }
     else if (move_type == move::type::PROMOTION) {
         assert(piece_type == piece::type::PAWN);
@@ -770,6 +831,13 @@ void Board::make(u16 move)
 
         this->hash_pawn ^= zobrist::get_piece(piece::create(piece_type, this->color), move_from);
         this->hash_non_pawn[this->color] ^= zobrist::get_piece(piece::create(promotion, this->color), move_to);
+
+        if (promotion <= piece::type::BISHOP) {
+            this->hash_minor ^= zobrist::get_piece(piece::create(promotion, this->color), move_to);
+        }
+        else {
+            this->hash_major ^= zobrist::get_piece(piece::create(promotion, this->color), move_to);
+        }
     }
     else {
         assert(this->get_type_at(move_to) == piece::type::NONE);
@@ -789,6 +857,21 @@ void Board::make(u16 move)
         else {
             this->hash_non_pawn[this->color] ^= zobrist::get_piece(piece, move_from);
             this->hash_non_pawn[this->color] ^= zobrist::get_piece(piece, move_to);
+
+            if (piece_type <= piece::type::BISHOP) {
+                this->hash_minor ^= zobrist::get_piece(piece, move_from);
+                this->hash_minor ^= zobrist::get_piece(piece, move_to);
+            }
+            else if (piece_type <= piece::type::QUEEN) {
+                this->hash_major ^= zobrist::get_piece(piece, move_from);
+                this->hash_major ^= zobrist::get_piece(piece, move_to);
+            }
+            else {
+                this->hash_minor ^= zobrist::get_piece(piece, move_from);
+                this->hash_minor ^= zobrist::get_piece(piece, move_to);
+                this->hash_major ^= zobrist::get_piece(piece, move_from);
+                this->hash_major ^= zobrist::get_piece(piece, move_to);
+            }
         }
     }
 
@@ -817,6 +900,8 @@ void Board::make(u16 move)
     assert(this->hash_pawn == this->get_hash_pawn_slow());
     assert(this->hash_non_pawn[0] == this->get_hash_non_pawn_slow(0));
     assert(this->hash_non_pawn[1] == this->get_hash_non_pawn_slow(1));
+    assert(this->hash_minor == this->get_hash_minor_slow());
+    assert(this->hash_major == this->get_hash_major_slow());
 };
 
 void Board::unmake(u16 move)
@@ -829,6 +914,8 @@ void Board::unmake(u16 move)
     this->hash_pawn = undo.hash_pawn;
     this->hash_non_pawn[0] = undo.hash_non_pawn[0];
     this->hash_non_pawn[1] = undo.hash_non_pawn[1];
+    this->hash_minor = undo.hash_minor;
+    this->hash_major = undo.hash_major;
     this->castling = undo.castling;
     this->enpassant = undo.enpassant;
     this->halfmove = undo.halfmove;
@@ -902,6 +989,8 @@ void Board::unmake(u16 move)
     assert(this->hash_pawn == this->get_hash_pawn_slow());
     assert(this->hash_non_pawn[0] == this->get_hash_non_pawn_slow(0));
     assert(this->hash_non_pawn[1] == this->get_hash_non_pawn_slow(1));
+    assert(this->hash_minor == this->get_hash_minor_slow());
+    assert(this->hash_major == this->get_hash_major_slow());
 };
 
 void Board::make_null()
@@ -914,6 +1003,8 @@ void Board::make_null()
             this->hash_non_pawn[0],
             this->hash_non_pawn[1]
         },
+        .hash_minor = this->hash_minor,
+        .hash_major = this->hash_major,
         .castling = this->castling,
         .enpassant = this->enpassant,
         .captured = piece::type::NONE,
@@ -949,6 +1040,8 @@ void Board::unmake_null()
     this->hash_pawn = undo.hash_pawn;
     this->hash_non_pawn[0] = undo.hash_non_pawn[0];
     this->hash_non_pawn[1] = undo.hash_non_pawn[1];
+    this->hash_minor = undo.hash_minor;
+    this->hash_major = undo.hash_major;
     this->castling = undo.castling;
     this->enpassant = undo.enpassant;
     this->halfmove = undo.halfmove;
