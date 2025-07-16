@@ -867,6 +867,11 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
 
         // Pruning
         if (best > -eval::score::MATE_FOUND) {
+            // Baddies pruning
+            if (picker.get_stage() == order::Stage::NOISY_BAD) {
+                break;
+            }
+
             // Futility pruning
             if (!is_in_check) {
                 const i32 futility = data.stack[data.ply].eval + tune::FP_MARGIN_QS;
