@@ -644,7 +644,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         // Cutoff
         if (score >= beta) {
             // History bonus and malus
-            const i16 bonus = history::get_bonus(depth);
+            const i16 bonus = history::get_bonus(depth) - is_cut * tune::HS_BONUS_CUT_COEF;
             const i16 malus = history::get_malus(depth);
 
             if (is_quiet) {
