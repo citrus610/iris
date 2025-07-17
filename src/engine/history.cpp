@@ -133,6 +133,7 @@ i32 Table::get_correction(Board& board)
     correction += i32(this->corr_pawn.get(board.get_color(), board.get_hash_pawn())) * tune::CORR_WEIGHT_PAWN;
     correction += i32(this->corr_non_pawn[color::WHITE].get(board.get_color(), board.get_hash_non_pawn(color::WHITE))) * tune::CORR_WEIGHT_NON_PAWN;
     correction += i32(this->corr_non_pawn[color::BLACK].get(board.get_color(), board.get_hash_non_pawn(color::BLACK))) * tune::CORR_WEIGHT_NON_PAWN;
+    correction += i32(this->corr_minor.get(board.get_color(), board.get_hash_minor())) * tune::CORR_WEIGHT_MINOR;
 
     return correction / history::corr::SCALE;
 };
@@ -142,6 +143,7 @@ void Table::update_correction(Board& board, i16 bonus)
     this->corr_pawn.update(board.get_color(), board.get_hash_pawn(), bonus);
     this->corr_non_pawn[color::WHITE].update(board.get_color(), board.get_hash_non_pawn(color::WHITE), bonus);
     this->corr_non_pawn[color::BLACK].update(board.get_color(), board.get_hash_non_pawn(color::BLACK), bonus);
+    this->corr_minor.update(board.get_color(), board.get_hash_minor(), bonus);
 };
 
 };
