@@ -24,7 +24,15 @@ inline std::vector<Test> set = {
 inline bool check(Data& data, i32 depth)
 {
     auto all = move::gen::get<move::gen::type::ALL>(data.board);
-    auto picker = order::Picker(data, move::NONE);
+
+    for (auto mv : all) {
+        if (data.board.is_quiet(mv)) {
+            data.stack[data.ply].killer = mv;
+            break;
+        }
+    }
+
+    auto picker = order::Picker(data, all.size() ? all.back() : move::NONE);
 
     if (depth <= 1) {
         return true;
