@@ -335,8 +335,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
         // Uses the node's score as a more accurate eval value
         if ((table_bound == transposition::bound::EXACT) ||
-            (table_bound == transposition::bound::LOWER && table_score >= beta) ||
-            (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+            (table_bound == transposition::bound::LOWER && table_score >= eval) ||
+            (table_bound == transposition::bound::UPPER && table_score <= eval)) {
             eval = table_score;
         }
     }
@@ -802,8 +802,8 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         if (table_hit) {
             // Uses the node's score as a more accurate eval value
             if ((table_bound == transposition::bound::EXACT) ||
-                (table_bound == transposition::bound::LOWER && table_score >= beta) ||
-                (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
+                (table_bound == transposition::bound::LOWER && table_score >= eval) ||
+                (table_bound == transposition::bound::UPPER && table_score <= eval)) {
                 eval = table_score;
             }
         }
