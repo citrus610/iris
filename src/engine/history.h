@@ -125,6 +125,7 @@ public:
     history::corr::Table corr_pawn = {};
     history::corr::Table corr_non_pawn[2] = {};
     history::corr::Table corr_minor = {};
+    history::corr::Table corr_major = {};
 public:
     i32 get_correction(Board& board);
 public:
