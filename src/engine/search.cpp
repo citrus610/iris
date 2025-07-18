@@ -280,7 +280,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     const bool is_singular = data.stack[data.ply].excluded != move::NONE;
 
     // Probes transposition table
-    auto [table_hit, table_entry] = is_singular ? std::make_pair(false, nullptr) : this->table.get(data.board.get_hash());
+    auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
 
     auto table_move = move::NONE;
     auto table_eval = eval::score::NONE;
@@ -298,7 +298,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         table_pv |= table_entry->is_pv();
 
         // Cutoff
-        if (!is_pv && table_score != eval::score::NONE && table_depth >= depth && data.board.get_halfmove_count() < 90) {
+        if (!is_pv && !is_singular && table_score != eval::score::NONE && table_depth >= depth && data.board.get_halfmove_count() < 90) {
             if ((table_bound == transposition::bound::EXACT) ||
                 (table_bound == transposition::bound::LOWER && table_score >= beta) ||
                 (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
@@ -421,20 +421,20 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     }
 
     // Probabilistic cutoff
-    if (!is_pv && !is_singular) {
+    if (!is_pv) {
         const i32 probcut_beta = beta + 200;
 
         if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
             const i32 probcut_depth = depth - 4;
             const i32 probcut_margin = probcut_beta - eval_static;
 
-            u16 hasher = move::NONE;
+            u16 probcut_hasher = move::NONE;
 
             if (table_move != move::NONE && !data.board.is_quiet(table_move) && see::is_ok(data.board, table_move, probcut_margin)) {
-                hasher = table_move;
+                probcut_hasher = table_move;
             }
 
-            auto picker = order::Picker(data, hasher, true, probcut_margin);
+            auto picker = order::Picker(data, probcut_hasher, true, probcut_margin);
 
             while (true) {
                 const u16 move = picker.get(data);
@@ -443,7 +443,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                     break;
                 }
 
-                if (!data.board.is_legal(move)) {
+                if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
                     continue;
                 }
 
