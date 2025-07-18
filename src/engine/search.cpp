@@ -280,7 +280,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     const bool is_singular = data.stack[data.ply].excluded != move::NONE;
 
     // Probes transposition table
-    auto [table_hit, table_entry] = is_singular ? std::make_pair(false, nullptr) : this->table.get(data.board.get_hash());
+    auto [table_hit, table_entry] = this->table.get(data.board.get_hash());
 
     auto table_move = move::NONE;
     auto table_eval = eval::score::NONE;
@@ -298,7 +298,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         table_pv |= table_entry->is_pv();
 
         // Cutoff
-        if (!is_pv && table_score != eval::score::NONE && table_depth >= depth && data.board.get_halfmove_count() < 90) {
+        if (!is_pv && !is_singular && table_score != eval::score::NONE && table_depth >= depth && data.board.get_halfmove_count() < 90) {
             if ((table_bound == transposition::bound::EXACT) ||
                 (table_bound == transposition::bound::LOWER && table_score >= beta) ||
                 (table_bound == transposition::bound::UPPER && table_score <= alpha)) {
