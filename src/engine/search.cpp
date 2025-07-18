@@ -428,7 +428,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             const i32 probcut_depth = depth - 4;
             const i32 probcut_margin = probcut_beta - eval_static;
 
-            auto picker = order::Picker(data, move::NONE, true, probcut_margin);
+            u16 hasher = move::NONE;
+
+            if (table_move != move::NONE && !data.board.is_quiet(table_move) && see::is_ok(data.board, table_move, probcut_margin)) {
+                hasher = table_move;
+            }
+
+            auto picker = order::Picker(data, hasher, true, probcut_margin);
 
             while (true) {
                 const u16 move = picker.get(data);
