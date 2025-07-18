@@ -420,6 +420,62 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         depth -= 1;
     }
 
+    // Probabilistic cutoff
+    if (!is_pv && !is_singular) {
+        const i32 probcut_beta = beta + 200;
+
+        if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
+            const i32 probcut_depth = depth - 4;
+            const i32 probcut_margin = probcut_beta - eval_static;
+
+            auto picker = order::Picker(data, data.board.is_quiet(table_move) ? move::NONE : table_move, true, probcut_margin);
+
+            while (true) {
+                const u16 move = picker.get(data);
+
+                if (!move || picker.get_stage() == order::Stage::NOISY_BAD) {
+                    break;
+                }
+
+                if (!data.board.is_legal(move)) {
+                    continue;
+                }
+
+                this->table.prefetch(data.board.get_hash_after(move));
+
+                data.make(move);
+
+                i32 score = -this->qsearch<false>(data, -probcut_beta, -probcut_beta + 1);
+
+                if (score >= probcut_beta) {
+                    score = -this->pvsearch<node::Type::NORMAL>(data, -probcut_beta, -probcut_beta + 1, probcut_depth, !is_cut);
+                }
+
+                data.unmake(move);
+
+                if (!this->running.test()) {
+                    return eval::score::DRAW;
+                }
+
+                if (score >= probcut_beta) {
+                    table_entry->set(
+                        data.board.get_hash(),
+                        move,
+                        score,
+                        eval_raw,
+                        probcut_depth + 1,
+                        this->table.age,
+                        table_pv,
+                        transposition::bound::LOWER,
+                        data.ply
+                    );
+
+                    return score;
+                }
+            }
+        }
+    }
+
     // Move loop
     loop:
 
