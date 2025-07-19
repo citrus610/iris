@@ -489,13 +489,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 is_quiet &&
                 depth_reduced <= tune::FP_DEPTH &&
                 futility <= alpha) {
-                // Updates best score
                 if (std::abs(best) < eval::score::MATE_FOUND && best < futility) {
                     best = futility;
                 }
                     
-                // Skips
                 picker.skip_quiets();
+
                 continue;
             }
 
@@ -638,6 +637,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     
                 // Updates pv line
                 data.stack[data.ply].pv.update(move, data.stack[data.ply + 1].pv);
+
+                // Updates history
+                if (is_quiet && score < beta) {
+                    const i16 bonus = std::min(depth * 100 + legals * 15 - 50, 1000);
+
+                    data.history.quiet.update(data.board, move, bonus);
+                }
             }
         }
 
