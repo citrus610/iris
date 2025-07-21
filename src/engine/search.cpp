@@ -489,13 +489,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 is_quiet &&
                 depth_reduced <= tune::FP_DEPTH &&
                 futility <= alpha) {
-                // Updates best score
                 if (std::abs(best) < eval::score::MATE_FOUND && best < futility) {
                     best = futility;
                 }
                     
-                // Skips
                 picker.skip_quiets();
+
                 continue;
             }
 
