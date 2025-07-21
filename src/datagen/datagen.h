@@ -133,7 +133,7 @@ inline void run(u64 thread_count)
                 games += 1;
 
                 // Only save now and then
-                if (games % 10 == 0) {
+                if (games % 100 == 0) {
                     std::lock_guard<std::mutex> lk(mtx);
 
                     std::ofstream o("out.txt", std::ios::out | std::ios::app);

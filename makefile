@@ -1,7 +1,7 @@
 CXX ?= g++
 EXE ?= iris
 
-NET ?= rose
+NET ?= tulip
 NET_FILE := $(NET).bin
 
 CXXFLAGS += -DNNUE=\"$(NET_FILE)\"
