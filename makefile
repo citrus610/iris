@@ -53,7 +53,7 @@ v2:
 	@$(CXX) $(CXXFLAGS) -march=x86-64-v2 $(SRC) $(STATIC) -o iris_x86-64-v2$(SUFFIX)
 
 v3:
-	@$(CXX) $(CXXFLAGS) -march=x86-64-v3 -DUSE_PEXT $(SRC) $(STATIC) -o iris_x86-64-v3$(SUFFIX)
+	@$(CXX) $(CXXFLAGS) -march=x86-64-v3 -DPEXT $(SRC) $(STATIC) -o iris_x86-64-v3$(SUFFIX)
 
 release: loadnet v1 v2 v3 cleannet
 

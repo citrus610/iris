@@ -27,7 +27,7 @@
 #include <cctype>
 #include <optional>
 
-#ifdef USE_PEXT
+#ifdef PEXT
 #include <x86intrin.h>
 #endif
 
