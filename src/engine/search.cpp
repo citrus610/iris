@@ -314,6 +314,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     // Improving
     bool is_improving = false;
 
+    // Correction
+    i32 correction = 0;
+
     // Static eval
     i32 eval = eval::score::NONE;
     i32 eval_raw = eval::score::NONE;
@@ -365,6 +368,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     if (data.ply >= 2 && data.stack[data.ply - 2].eval != eval::score::NONE) {
         is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
     }
+
+    // Correction
+    correction = std::abs(eval_static - eval_raw);
 
     // Pruning
     if (!is_pv && !is_singular) {
@@ -582,6 +588,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             reduction -= table_pv;
             reduction -= data.board.get_checkers() != 0ULL;
             reduction -= move == data.stack[data.ply - 1].killer;
+            reduction -= correction > tune::LMR_CORR_MARGIN;
             reduction += !is_improving;
             reduction += is_cut;
 
