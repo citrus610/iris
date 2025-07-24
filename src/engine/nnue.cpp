@@ -19,8 +19,29 @@ i32 Net::get_eval(i8 color)
 {
     i32 score = 0;
 
-    score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[color], PARAMS.out_weights[0]);
-    score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[!color], PARAMS.out_weights[1]);
+    #ifdef __AVX2__
+        // Adds the stm vec and nstm vec
+        auto vec = _mm256_add_epi32(
+            get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[color], PARAMS.out_weights[0]),
+            get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[!color], PARAMS.out_weights[1])
+        );
+
+        // Adds the 2 128-bit lanes
+        auto sum = _mm_add_epi32(
+            _mm256_extracti128_si256(vec, 0),
+            _mm256_extracti128_si256(vec, 1)
+        );
+
+        // Does horizontal addition twice
+        sum = _mm_hadd_epi32(sum, sum);
+        sum = _mm_hadd_epi32(sum, sum);
+
+        // Extracts the result
+        score = _mm_cvtsi128_si32(sum);
+    #else
+        score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[color], PARAMS.out_weights[0]);
+        score += get_linear<size::HIDDEN, scale::L0>(this->stack[this->index].data[!color], PARAMS.out_weights[1]);
+    #endif
 
     return (score / scale::L0 + PARAMS.out_bias) * scale::EVAL / (scale::L0 * scale::L1);
 };
