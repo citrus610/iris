@@ -417,14 +417,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
     // Probabilistic cutoff
     if (!is_pv) {
-        const i32 probcut_beta = beta + 200;
+        const i32 probcut_beta = beta + 200 - is_improving * 50;
 
         if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
             const i32 probcut_depth = depth - 4;
             const i32 probcut_margin = probcut_beta - eval_static;
-            const u16 probcut_hasher = table_move != move::NONE && !data.board.is_quiet(table_move) && see::is_ok(data.board, table_move, probcut_margin) ? table_move : move::NONE;
 
-            auto picker = order::Picker(data, probcut_hasher, true, probcut_margin);
+            auto picker = order::Picker(data, move::NONE, true, probcut_margin);
 
             while (true) {
                 const u16 move = picker.get(data);
