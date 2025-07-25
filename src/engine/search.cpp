@@ -827,7 +827,6 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     // Best score
     i32 best = -eval::score::INFINITE;
     u16 best_move = move::NONE;
-    i32 alpha_old = alpha;
 
     if (!is_in_check) {
         best = eval;
@@ -935,10 +934,7 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
     }
 
     // Updates transposition table
-    u8 bound =
-        best >= beta ? transposition::bound::LOWER :
-        best > alpha_old ? transposition::bound::EXACT :
-        transposition::bound::UPPER;
+    u8 bound = best >= beta ? transposition::bound::LOWER : transposition::bound::UPPER;
 
     table_entry->set(
         data.board.get_hash(),
