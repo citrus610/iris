@@ -54,82 +54,108 @@ void Accumulator::refresh(Board& board)
     }
 };
 
-void Accumulator::update(const Accumulator& parent, i8 color)
+void Accumulator::make(const Accumulator& parent, i8 color)
 {
-    const auto adds_count = this->updates.adds.size();
-    const auto subs_count = this->updates.subs.size();
+    const auto adds = this->update.adds.size();
+    const auto subs = this->update.subs.size();
 
-    usize adds[2];
-    usize subs[2];
-
-    if (adds_count == 2 && subs_count == 2) {
-        adds[0] = this->updates.adds[0].get_index(color);
-        adds[1] = this->updates.adds[1].get_index(color);
-        subs[0] = this->updates.subs[0].get_index(color);
-        subs[1] = this->updates.subs[1].get_index(color);
-
-        this->edit<2, 2>(parent, adds, subs, color);
+    if (adds == 2 && subs == 2) {
+        this->edit_add2_sub2(
+            parent,
+            this->update.adds[0].get_index(color),
+            this->update.adds[1].get_index(color),
+            this->update.subs[0].get_index(color),
+            this->update.subs[1].get_index(color),
+            color
+        );
     }
-    else if (adds_count == 1 && subs_count == 2) {
-        adds[0] = this->updates.adds[0].get_index(color);
-        subs[0] = this->updates.subs[0].get_index(color);
-        subs[1] = this->updates.subs[1].get_index(color);
-
-        this->edit<1, 2>(parent, adds, subs, color);
+    else if (adds == 1 && subs == 2) {
+        this->edit_add1_sub2(
+            parent,
+            this->update.adds[0].get_index(color),
+            this->update.subs[0].get_index(color),
+            this->update.subs[1].get_index(color),
+            color
+        );
     }
-    else if (adds_count == 1 && subs_count == 1) {
-        adds[0] = this->updates.adds[0].get_index(color);
-        subs[0] = this->updates.subs[0].get_index(color);
-
-        this->edit<1, 1>(parent, adds, subs, color);
+    else if (adds == 1 && subs == 1) {
+        this->edit_add1_sub1(
+            parent,
+            this->update.adds[0].get_index(color),
+            this->update.subs[0].get_index(color),
+            color
+        );
     }
     else {
         assert(false);
     }
 };
 
-template <usize ADD, usize SUB>
-void Accumulator::edit(const Accumulator& parent, usize adds[], usize subs[], i8 color)
+void Accumulator::edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color)
 {
-    auto in = parent.data[color];
-    auto out = this->data[color];
-
-    i16* adds_vec[ADD];
-    i16* subs_vec[SUB];
-
-    for (usize i = 0; i < ADD; ++i) {
-        adds_vec[i] = PARAMS.in_weights[adds[i]];
-    }
-
-    for (usize i = 0; i < SUB; ++i) {
-        subs_vec[i] = PARAMS.in_weights[subs[i]];
-    }
+    const auto vec_add1 = PARAMS.in_weights[add1];
+    const auto vec_sub1 = PARAMS.in_weights[sub1];
 
     #ifdef __AVX2__
         for (usize i = 0; i < size::HIDDEN; i += 16) {
-            auto vec = _mm256_load_si256((const __m256i*)&in[i]);
+            auto vec = _mm256_load_si256((const __m256i*)&parent.data[color][i]);
 
-            for (usize k = 0; k < ADD; ++k) {
-                vec = _mm256_add_epi16(vec, _mm256_load_si256((const __m256i*)&adds_vec[k][i]));
-            }
+            vec = _mm256_add_epi16(vec, _mm256_load_si256((const __m256i*)&vec_add1[i]));
+            vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&vec_sub1[i]));
 
-            for (usize k = 0; k < SUB; ++k) {
-                vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&subs_vec[k][i]));
-            }
-
-            _mm256_store_si256((__m256i*)&out[i], vec);
+            _mm256_store_si256((__m256i*)&this->data[color][i], vec);
         }
     #else
         for (usize i = 0; i < size::HIDDEN; ++i) {
-            out[i] = in[i];
+            this->data[color][i] = parent.data[color][i] + vec_add1[i] - vec_sub1[i];
+        }
+    #endif
+};
 
-            for (usize k = 0; k < ADD; ++k) {
-                out[i] += adds_vec[k][i];
-            }
+void Accumulator::edit_add1_sub2(const Accumulator& parent, usize add1, usize sub1, usize sub2, i8 color)
+{
+    const auto vec_add1 = PARAMS.in_weights[add1];
+    const auto vec_sub1 = PARAMS.in_weights[sub1];
+    const auto vec_sub2 = PARAMS.in_weights[sub2];
 
-            for (usize k = 0; k < SUB; ++k) {
-                out[i] -= subs_vec[k][i];
-            }
+    #ifdef __AVX2__
+        for (usize i = 0; i < size::HIDDEN; i += 16) {
+            auto vec = _mm256_load_si256((const __m256i*)&parent.data[color][i]);
+
+            vec = _mm256_add_epi16(vec, _mm256_load_si256((const __m256i*)&vec_add1[i]));
+            vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&vec_sub1[i]));
+            vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&vec_sub2[i]));
+
+            _mm256_store_si256((__m256i*)&this->data[color][i], vec);
+        }
+    #else
+        for (usize i = 0; i < size::HIDDEN; ++i) {
+            this->data[color][i] = parent.data[color][i] + vec_add1[i] - vec_sub1[i] - vec_sub2[i];
+        }
+    #endif
+};
+
+void Accumulator::edit_add2_sub2(const Accumulator& parent, usize add1, usize add2, usize sub1, usize sub2, i8 color)
+{
+    const auto vec_add1 = PARAMS.in_weights[add1];
+    const auto vec_add2 = PARAMS.in_weights[add2];
+    const auto vec_sub1 = PARAMS.in_weights[sub1];
+    const auto vec_sub2 = PARAMS.in_weights[sub2];
+
+    #ifdef __AVX2__
+        for (usize i = 0; i < size::HIDDEN; i += 16) {
+            auto vec = _mm256_load_si256((const __m256i*)&parent.data[color][i]);
+
+            vec = _mm256_add_epi16(vec, _mm256_load_si256((const __m256i*)&vec_add1[i]));
+            vec = _mm256_add_epi16(vec, _mm256_load_si256((const __m256i*)&vec_add2[i]));
+            vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&vec_sub1[i]));
+            vec = _mm256_sub_epi16(vec, _mm256_load_si256((const __m256i*)&vec_sub2[i]));
+
+            _mm256_store_si256((__m256i*)&this->data[color][i], vec);
+        }
+    #else
+        for (usize i = 0; i < size::HIDDEN; ++i) {
+            this->data[color][i] = parent.data[color][i] + vec_add1[i] + vec_add2[i] - vec_sub1[i] - vec_sub2[i];
         }
     #endif
 };
@@ -181,8 +207,8 @@ void Net::make(Board& board, const u16& move)
     this->index += 1;
 
     // Clears updates
-    auto& adds = this->stack[this->index].updates.adds;
-    auto& subs = this->stack[this->index].updates.subs;
+    auto& adds = this->stack[this->index].update.adds;
+    auto& subs = this->stack[this->index].update.subs;
 
     adds.clear();
     subs.clear();
@@ -225,9 +251,9 @@ void Net::make(Board& board, const u16& move)
         subs.add(Feature { .piece = piece::create(piece::type::PAWN, !color), .square = i8(to ^ 8) });
     }
 
-    // Updates
+    // Updates accumulator
     for (i8 color = 0; color < 2; ++color) {
-        this->stack[this->index].update(this->stack[this->index - 1], color);
+        this->stack[this->index].make(this->stack[this->index - 1], color);
     }
 };
 

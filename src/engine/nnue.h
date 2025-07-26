@@ -45,7 +45,7 @@ public:
     usize get_index(i8 color);
 };
 
-struct Updates
+struct Update
 {
     arrayvec<Feature, 2> adds = {};
     arrayvec<Feature, 2> subs = {};
@@ -55,14 +55,15 @@ class Accumulator
 {
 public:
     alignas(32) i16 data[2][size::HIDDEN];
-    Updates updates;
+    Update update;
 public:
     void clear();
     void refresh(Board& board);
-    void update(const Accumulator& parent, i8 color);
+    void make(const Accumulator& parent, i8 color);
 public:
-    template <usize ADD, usize SUB>
-    void edit(const Accumulator& parent, usize adds[], usize subs[], i8 color);
+    void edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color);
+    void edit_add1_sub2(const Accumulator& parent, usize add1, usize sub1, usize sub2, i8 color);
+    void edit_add2_sub2(const Accumulator& parent, usize add1, usize add2, usize sub1, usize sub2, i8 color);
 };
 
 class Net
