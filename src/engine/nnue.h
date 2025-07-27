@@ -26,11 +26,6 @@ namespace scale
     constexpr i32 L1 = 64;
 };
 
-struct Accumulator
-{
-    alignas(32) i16 data[2][size::HIDDEN];
-};
-
 struct Parameters
 {
     alignas(32) i16 in_weights[size::INPUT][size::HIDDEN];
@@ -40,6 +35,36 @@ struct Parameters
 };
 
 inline Parameters PARAMS;
+
+class Feature
+{
+public:
+    i8 piece = piece::NONE;
+    i8 square = square::NONE;
+public:
+    usize get_index(i8 color);
+};
+
+struct Update
+{
+    arrayvec<Feature, 2> adds = {};
+    arrayvec<Feature, 2> subs = {};
+};
+
+class Accumulator
+{
+public:
+    alignas(32) i16 data[2][size::HIDDEN];
+    Update update;
+public:
+    void clear();
+    void refresh(Board& board);
+    void make(const Accumulator& parent, i8 color);
+public:
+    void edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color);
+    void edit_add1_sub2(const Accumulator& parent, usize add1, usize sub1, usize sub2, i8 color);
+    void edit_add2_sub2(const Accumulator& parent, usize add1, usize add2, usize sub1, usize sub2, i8 color);
+};
 
 class Net
 {
@@ -51,19 +76,9 @@ public:
 public:
     i32 get_eval(i8 color);
 public:
-    template <bool ADD> void update(i8 color, i8 type, i8 square);
-    void clear();
     void refresh(Board& board);
     void make(Board& board, const u16& move);
     void unmake();
-};
-
-constexpr std::pair<usize, usize> get_index(i8 color, i8 type, i8 square)
-{
-    return {
-        usize(384) * usize(color) + usize(64) * usize(type) + usize(square),
-        usize(384) * usize(!color) + usize(64) * usize(type) + usize(square ^ 56)
-    };
 };
 
 #ifdef __AVX2__
