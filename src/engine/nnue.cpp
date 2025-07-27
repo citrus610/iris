@@ -31,7 +31,6 @@ void Accumulator::refresh(Board& board)
 {
     this->clear();
 
-    auto features = arrayvec<Feature, 32>();
     auto occupied = board.get_occupied();
 
     while (occupied)
@@ -39,17 +38,12 @@ void Accumulator::refresh(Board& board)
         const auto square = bitboard::pop_lsb(occupied);
         const auto piece = board.get_piece_at(square);
 
-        features.add(Feature {
-            .piece = piece,
-            .square = square
-        });
-    }
+        const auto index_white = Feature { .piece = piece, .square = square }.get_index(color::WHITE);
+        const auto index_black = Feature { .piece = piece, .square = square }.get_index(color::BLACK);
 
-    for (i8 color = 0; color < 2; ++color) {
-        for (auto& feature : features) {
-            for (usize i = 0; i < size::HIDDEN; ++i) {
-                this->data[color][i] += PARAMS.in_weights[feature.get_index(color)][i];
-            }
+        for (usize i = 0; i < size::HIDDEN; ++i) {
+            this->data[color::WHITE][i] += PARAMS.in_weights[index_white][i];
+            this->data[color::BLACK][i] += PARAMS.in_weights[index_black][i];
         }
     }
 };
@@ -252,9 +246,8 @@ void Net::make(Board& board, const u16& move)
     }
 
     // Updates accumulator
-    for (i8 color = 0; color < 2; ++color) {
-        this->stack[this->index].make(this->stack[this->index - 1], color);
-    }
+    this->stack[this->index].make(this->stack[this->index - 1], color::WHITE);
+    this->stack[this->index].make(this->stack[this->index - 1], color::BLACK);
 };
 
 void Net::unmake()
