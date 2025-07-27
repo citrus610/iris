@@ -36,19 +36,11 @@ struct Parameters
 
 inline Parameters PARAMS;
 
-class Feature
-{
-public:
-    i8 piece = piece::NONE;
-    i8 square = square::NONE;
-public:
-    usize get_index(i8 color);
-};
-
 struct Update
 {
-    arrayvec<Feature, 2> adds = {};
-    arrayvec<Feature, 2> subs = {};
+    u16 move;
+    i8 piece;
+    i8 captured;
 };
 
 class Accumulator
@@ -81,6 +73,11 @@ public:
     void update(i8 color);
     void make(Board& board, const u16& move);
     void unmake();
+};
+
+constexpr usize get_index(i8 color, i8 type, i8 square, i8 stm)
+{
+    return usize(384) * usize(color != stm) + usize(64) * usize(type) + usize(square::get_relative(square, stm));
 };
 
 #ifdef __AVX2__

@@ -9,15 +9,6 @@ namespace nnue
 
 INCBIN(nnue_raw, NNUE);
 
-usize Feature::get_index(i8 color)
-{
-    const usize index_color = piece::get_color(this->piece) != color;
-    const usize index_piece = piece::get_type(this->piece);
-    const usize index_square = square::get_relative(this->square, color);
-
-    return usize(384) * index_color + usize(64) * index_piece + index_square;
-};
-
 void Accumulator::clear()
 {
     for (i8 color = 0; color < 2; ++color) {
@@ -31,90 +22,88 @@ void Accumulator::refresh(Board& board)
 {
     this->clear();
 
-    auto features = arrayvec<Feature, 32>();
     auto occupied = board.get_occupied();
 
     while (occupied)
     {
         const auto square = bitboard::pop_lsb(occupied);
-        const auto piece = board.get_piece_at(square);
+        const auto color = board.get_color_at(square);
+        const auto type = board.get_type_at(square);
 
-        features.add(Feature {
-            .piece = piece,
-            .square = square
-        });
+        const auto index_white = nnue::get_index(color, type, square, color::WHITE);
+        const auto index_black = nnue::get_index(color, type, square, color::BLACK);
+
+        for (usize i = 0; i < size::HIDDEN; ++i) {
+            this->data[0][i] += PARAMS.in_weights[index_white][i];
+            this->data[1][i] += PARAMS.in_weights[index_black][i];
+        }
     }
-
-    #ifdef __AVX2__
-        for (i8 color = 0; color < 2; ++color) {
-            auto accumulator = this->data[color];
-
-            __m256i vecs[size::HIDDEN / 16];
-
-            for (usize i = 0; i < size::HIDDEN / 16; ++i) {
-                vecs[i] = _mm256_load_si256((const __m256i*)&accumulator[i * 16]);
-            }
-
-            for (auto& feature : features) {
-                auto block = PARAMS.in_weights[feature.get_index(color)];
-
-                for (usize i = 0; i < size::HIDDEN / 16; ++i) {
-                    vecs[i] = _mm256_add_epi16(vecs[i], _mm256_load_si256((const __m256i*)&block[i * 16]));
-                }
-            }
-
-            for (usize i = 0; i < size::HIDDEN / 16; ++i) {
-                _mm256_store_si256((__m256i*)&accumulator[i * 16], vecs[i]);
-            }
-        }
-    #else
-        for (i8 color = 0; color < 2; ++color) {
-            for (auto& feature : features) {
-                auto block = PARAMS.in_weights[feature.get_index(color)];
-
-                for (usize i = 0; i < size::HIDDEN; ++i) {
-                    this->data[color][i] += block[i];
-                }
-            }
-        }
-    #endif
 };
 
 void Accumulator::make(const Accumulator& parent, i8 color)
 {
-    const auto adds = this->update.adds.size();
-    const auto subs = this->update.subs.size();
+    // Gets move data
+    const auto move_type = move::get_type(this->update.move);
+    const auto from = move::get_from(this->update.move);
+    const auto to = move::get_to(this->update.move);
 
-    if (adds == 2 && subs == 2) {
+    const auto piece_type = piece::get_type(this->update.piece);
+    const auto piece_color = piece::get_color(this->update.piece);
+
+    // Checks castling
+    if (move_type == move::type::CASTLING) {
+        const bool castle_short = to > from;
+        const auto king_to = castling::get_king_to(piece_color, castle_short);
+        const auto rook_to = castling::get_rook_to(piece_color, castle_short);
+
         this->edit_add2_sub2(
             parent,
-            this->update.adds[0].get_index(color),
-            this->update.adds[1].get_index(color),
-            this->update.subs[0].get_index(color),
-            this->update.subs[1].get_index(color),
+            nnue::get_index(piece_color, piece::type::KING, king_to, color),
+            nnue::get_index(piece_color, piece::type::ROOK, rook_to , color),
+            nnue::get_index(piece_color, piece::type::KING, from, color),
+            nnue::get_index(piece_color, piece::type::ROOK, to, color),
             color
         );
+
+        return;
     }
-    else if (adds == 1 && subs == 2) {
+
+    // Checks moving piece
+    const auto add1 = nnue::get_index(piece_color, move_type == move::type::PROMOTION ? move::get_promotion_type(this->update.move) : piece_type, to, color);
+    const auto sub1 = nnue::get_index(piece_color, piece_type, from, color);
+
+    // Checks capture
+    if (this->update.captured != piece::NONE) {
         this->edit_add1_sub2(
             parent,
-            this->update.adds[0].get_index(color),
-            this->update.subs[0].get_index(color),
-            this->update.subs[1].get_index(color),
+            add1,
+            sub1,
+            nnue::get_index(!piece_color, piece::get_type(this->update.captured), to, color),
             color
         );
+
+        return;
     }
-    else if (adds == 1 && subs == 1) {
-        this->edit_add1_sub1(
+
+    // Checks enpassant
+    if (move_type == move::type::ENPASSANT) {
+        this->edit_add1_sub2(
             parent,
-            this->update.adds[0].get_index(color),
-            this->update.subs[0].get_index(color),
+            add1,
+            sub1,
+            nnue::get_index(!piece_color, piece::type::PAWN, to ^ 8, color),
             color
         );
+
+        return;
     }
-    else {
-        assert(false);
-    }
+    
+    this->edit_add1_sub1(
+        parent,
+        add1,
+        sub1,
+        color
+    );
 };
 
 void Accumulator::edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color)
@@ -258,56 +247,14 @@ void Net::update(i8 color)
 
 void Net::make(Board& board, const u16& move)
 {
-    // Adds to stack
     this->index += 1;
 
-    // Clears updates
-    auto& adds = this->stack[this->index].update.adds;
-    auto& subs = this->stack[this->index].update.subs;
-
-    adds.clear();
-    subs.clear();
+    this->stack[this->index].update.move = move;
+    this->stack[this->index].update.piece = board.get_piece_at(move::get_from(move));
+    this->stack[this->index].update.captured = board.get_piece_at(move::get_to(move));
 
     this->stack[this->index].is_updated[color::WHITE] = false;
     this->stack[this->index].is_updated[color::BLACK] = false;
-
-    // Gets move data
-    const auto move_type = move::get_type(move);
-    const auto from = move::get_from(move);
-    const auto to = move::get_to(move);
-
-    const auto piece = board.get_piece_at(from);
-    const auto color = board.get_color();
-    const auto captured = move_type == move::type::CASTLING ? i8(piece::NONE) : board.get_piece_at(to);
-
-    // Checks move type
-    if (move_type == move::type::CASTLING) {
-        bool castle_short = to > from;
-
-        const auto king_to = castling::get_king_to(color, castle_short);
-        const auto rook_to = castling::get_rook_to(color, castle_short);
-
-        adds.add(Feature { .piece = piece::create(piece::type::KING, color), .square = king_to });
-        adds.add(Feature { .piece = piece::create(piece::type::ROOK, color), .square = rook_to });
-        subs.add(Feature { .piece = piece::create(piece::type::KING, color), .square = from });
-        subs.add(Feature { .piece = piece::create(piece::type::ROOK, color), .square = to });
-    }
-    else if (move_type == move::type::PROMOTION) {
-        adds.add(Feature { .piece = piece::create(move::get_promotion_type(move), color), .square = to });
-        subs.add(Feature { .piece = piece, .square = from });
-    }
-    else {
-        adds.add(Feature { .piece = piece, .square = to });
-        subs.add(Feature { .piece = piece, .square = from });
-    }
-
-    // Checks capture
-    if (captured != piece::NONE) {
-        subs.add(Feature { .piece = captured, .square = to });
-    }
-    else if (move_type == move::type::ENPASSANT) {
-        subs.add(Feature { .piece = piece::create(piece::type::PAWN, !color), .square = i8(to ^ 8) });
-    }
 };
 
 void Net::unmake()
