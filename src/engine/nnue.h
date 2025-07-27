@@ -49,7 +49,6 @@ struct Update
 {
     arrayvec<Feature, 2> adds = {};
     arrayvec<Feature, 2> subs = {};
-    bool is_updated[2] = {};
 };
 
 class Accumulator
@@ -57,6 +56,7 @@ class Accumulator
 public:
     alignas(32) i16 data[2][size::HIDDEN];
     Update update;
+    bool is_updated[2];
 public:
     void clear();
     void refresh(Board& board);

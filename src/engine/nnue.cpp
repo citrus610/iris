@@ -55,9 +55,6 @@ void Accumulator::refresh(Board& board)
 
     this->update.adds.clear();
     this->update.subs.clear();
-
-    this->update.is_updated[color::WHITE] = true;
-    this->update.is_updated[color::BLACK] = true;
 };
 
 void Accumulator::make(const Accumulator& parent, i8 color)
@@ -95,8 +92,6 @@ void Accumulator::make(const Accumulator& parent, i8 color)
     else {
         assert(false);
     }
-
-    this->update.is_updated[color] = true;
 };
 
 void Accumulator::edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color)
@@ -178,7 +173,7 @@ i32 Net::get_eval(i8 color)
     i32 score = 0;
 
     for (i8 color = 0; color < 2; ++color) {
-        if (this->stack[this->index].update.is_updated[color]) {
+        if (this->stack[this->index].is_updated[color]) {
             continue;
         }
 
@@ -215,23 +210,26 @@ i32 Net::get_eval(i8 color)
 void Net::refresh(Board& board)
 {
     this->stack[this->index].refresh(board);
+    this->stack[this->index].is_updated[color::WHITE] = true;
+    this->stack[this->index].is_updated[color::BLACK] = true;
 };
 
 void Net::update(i8 color)
 {
-    usize start = this->index;
+    usize start = this->index - 1;
 
     while (true)
     {
-        if (this->stack[start - 1].update.is_updated[color]) {
+        if (this->stack[start].is_updated[color]) {
             break;
         }
 
         start -= 1;
     }
 
-    for (usize i = start; i <= this->index; ++i) {
-        this->stack[i].make(this->stack[i - 1], color);
+    for (usize i = start; i < this->index; ++i) {
+        this->stack[i + 1].make(this->stack[i], color);
+        this->stack[i + 1].is_updated[color] = true;
     }
 };
 
@@ -247,8 +245,8 @@ void Net::make(Board& board, const u16& move)
     adds.clear();
     subs.clear();
 
-    this->stack[this->index].update.is_updated[color::WHITE] = false;
-    this->stack[this->index].update.is_updated[color::BLACK] = false;
+    this->stack[this->index].is_updated[color::WHITE] = false;
+    this->stack[this->index].is_updated[color::BLACK] = false;
 
     // Gets move data
     const auto move_type = move::get_type(move);
