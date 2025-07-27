@@ -49,6 +49,7 @@ struct Update
 {
     arrayvec<Feature, 2> adds = {};
     arrayvec<Feature, 2> subs = {};
+    bool is_updated[2] = {};
 };
 
 class Accumulator
@@ -77,6 +78,7 @@ public:
     i32 get_eval(i8 color);
 public:
     void refresh(Board& board);
+    void update(i8 color);
     void make(Board& board, const u16& move);
     void unmake();
 };

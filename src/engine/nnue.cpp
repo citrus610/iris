@@ -89,6 +89,8 @@ void Accumulator::make(const Accumulator& parent, i8 color)
     else {
         assert(false);
     }
+
+    this->update.is_updated[color] = true;
 };
 
 void Accumulator::edit_add1_sub1(const Accumulator& parent, usize add1, usize sub1, i8 color)
@@ -169,6 +171,14 @@ i32 Net::get_eval(i8 color)
 {
     i32 score = 0;
 
+    for (i8 color = 0; color < 2; ++color) {
+        if (this->stack[this->index].update.is_updated[color]) {
+            continue;
+        }
+
+        this->update(color);
+    }
+
     #ifdef __AVX2__
         // Adds the stm vec and nstm vec
         auto vec = _mm256_add_epi32(
@@ -201,6 +211,24 @@ void Net::refresh(Board& board)
     this->stack[this->index].refresh(board);
 };
 
+void Net::update(i8 color)
+{
+    usize start = this->index;
+
+    while (start > 1)
+    {
+        if (this->stack[start - 1].update.is_updated[color]) {
+            break;
+        }
+
+        start -= 1;
+    }
+
+    for (usize i = start; i <= this->index; ++i) {
+        this->stack[i].make(this->stack[i - 1], color);
+    }
+};
+
 void Net::make(Board& board, const u16& move)
 {
     // Adds to stack
@@ -212,6 +240,9 @@ void Net::make(Board& board, const u16& move)
 
     adds.clear();
     subs.clear();
+
+    this->stack[this->index].update.is_updated[color::WHITE] = false;
+    this->stack[this->index].update.is_updated[color::BLACK] = false;
 
     // Gets move data
     const auto move_type = move::get_type(move);
@@ -249,11 +280,6 @@ void Net::make(Board& board, const u16& move)
     }
     else if (move_type == move::type::ENPASSANT) {
         subs.add(Feature { .piece = piece::create(piece::type::PAWN, !color), .square = i8(to ^ 8) });
-    }
-
-    // Updates accumulator
-    for (i8 color = 0; color < 2; ++color) {
-        this->stack[this->index].make(this->stack[this->index - 1], color);
     }
 };
 
