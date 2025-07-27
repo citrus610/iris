@@ -52,6 +52,12 @@ void Accumulator::refresh(Board& board)
             }
         }
     }
+
+    this->update.adds.clear();
+    this->update.subs.clear();
+
+    this->update.is_updated[color::WHITE] = true;
+    this->update.is_updated[color::BLACK] = true;
 };
 
 void Accumulator::make(const Accumulator& parent, i8 color)
@@ -215,7 +221,7 @@ void Net::update(i8 color)
 {
     usize start = this->index;
 
-    while (start > 1)
+    while (true)
     {
         if (this->stack[start - 1].update.is_updated[color]) {
             break;
