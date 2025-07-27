@@ -45,16 +45,39 @@ void Accumulator::refresh(Board& board)
         });
     }
 
-    for (i8 color = 0; color < 2; ++color) {
-        for (auto& feature : features) {
-            for (usize i = 0; i < size::HIDDEN; ++i) {
-                this->data[color][i] += PARAMS.in_weights[feature.get_index(color)][i];
+    #ifdef __AVX2__
+        for (i8 color = 0; color < 2; ++color) {
+            auto accumulator = this->data[color];
+
+            __m256i vecs[size::HIDDEN / 16];
+
+            for (usize i = 0; i < size::HIDDEN / 16; ++i) {
+                vecs[i] = _mm256_load_si256((const __m256i*)&accumulator[i * 16]);
+            }
+
+            for (auto& feature : features) {
+                auto block = PARAMS.in_weights[feature.get_index(color)];
+
+                for (usize i = 0; i < size::HIDDEN / 16; ++i) {
+                    vecs[i] = _mm256_add_epi16(vecs[i], _mm256_load_si256((const __m256i*)&block[i * 16]));
+                }
+            }
+
+            for (usize i = 0; i < size::HIDDEN / 16; ++i) {
+                _mm256_store_si256((__m256i*)&accumulator[i * 16], vecs[i]);
             }
         }
-    }
+    #else
+        for (i8 color = 0; color < 2; ++color) {
+            for (auto& feature : features) {
+                auto block = PARAMS.in_weights[feature.get_index(color)];
 
-    this->update.adds.clear();
-    this->update.subs.clear();
+                for (usize i = 0; i < size::HIDDEN; ++i) {
+                    this->data[color][i] += block[i];
+                }
+            }
+        }
+    #endif
 };
 
 void Accumulator::make(const Accumulator& parent, i8 color)
