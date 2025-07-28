@@ -368,6 +368,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
     // Pruning
     if (!is_pv && !is_singular) {
+        // Hindsight adjustment
+        if (data.stack[data.ply - 1].reduction >= tune::HINT_ADJ_MARGIN &&
+            data.stack[data.ply - 1].eval != eval::score::NONE &&
+            data.stack[data.ply - 1].eval + eval_static < 0) {
+            depth += 1;
+        }
+
         // Razoring
         if (alpha < 2000 && eval + tune::RAZOR_COEF * depth < alpha) {
             // Scouts with qsearch
@@ -588,8 +595,14 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
 
+            // Sets stack reduction
+            data.stack[data.ply].reduction = reduction;
+
             // Scouts
             score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_reduced, true);
+
+            // Resets stack reduction
+            data.stack[data.ply].reduction = 0;
 
             // Failed
             if (score > alpha && depth_reduced < depth_next) {
