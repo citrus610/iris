@@ -83,6 +83,8 @@ VALUE(CORR_WEIGHT_NON_PAWN, 32, 16, 128, 8, true)
 VALUE(CORR_WEIGHT_MINOR, 32, 16, 128, 8, true)
 VALUE(CORR_WEIGHT_MAJOR, 32, 16, 128, 8, true)
 
+VALUE(HINT_ADJ_MARGIN, 3, 1, 5, 1, false)
+
 inline i32 LMR_TABLE[MAX_PLY][move::MAX];
 
 void init();
