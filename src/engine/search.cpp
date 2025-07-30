@@ -366,6 +366,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
     }
 
+    // Static eval quiet history
+    if (!is_root &&
+        !is_singular &&
+        data.stack[data.ply - 1].is_quiet &&
+        data.stack[data.ply - 1].move != move::NONE &&
+        data.stack[data.ply - 1].eval != eval::score::NONE) {
+        // Gets bonus
+        const i16 bonus = std::clamp(-8 * (eval_static + data.stack[data.ply - 1].eval), -64, 128);
+
+        // Updates quiet history
+        data.history.quiet.update(!data.board.get_color(), data.board.get_threats_previous(), data.stack[data.ply - 1].move, bonus);
+    }
+
     // Pruning
     if (!is_pv && !is_singular) {
         // Hindsight adjustment
