@@ -463,10 +463,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         // Checks for quiet
         const bool is_quiet = data.board.is_quiet(move);
 
+        // Sets stack quiet flag
+        data.stack[data.ply].is_quiet = is_quiet;
+
         // Gets history score
         const i32 history =
             is_quiet ?
-            data.history.quiet.get(data.board, move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
+            data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
             data.history.noisy.get(data.board, move);
 
         // Gets reduction
@@ -661,11 +664,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 data.stack[data.ply].killer = move;
 
                 // Quiet history
-                data.history.quiet.update(data.board, move, bonus);
+                data.history.quiet.update(data.board.get_color(), data.board.get_threats(), move, bonus);
                 data.history.cont.update(data, move, bonus);
 
                 for (const u16& visited : quiets) {
-                    data.history.quiet.update(data.board, visited, -malus);
+                    data.history.quiet.update(data.board.get_color(), data.board.get_threats(), visited, -malus);
                     data.history.cont.update(data, visited, -malus);
                 }
             }

@@ -71,6 +71,7 @@ public:
     u64 get_checkers();
     u64 get_blockers(i8 color);
     u64 get_threats();
+    u64 get_threats_previous();
     u64 get_hash();
     u64 get_hash_pawn();
     u64 get_hash_non_pawn(i8 color);
@@ -213,6 +214,13 @@ inline u64 Board::get_blockers(i8 color)
 inline u64 Board::get_threats()
 {
     return this->threats;
+};
+
+inline u64 Board::get_threats_previous()
+{
+    assert(!this->history.empty());
+
+    return this->history.back().threats;
 };
 
 inline u64 Board::get_hash()
