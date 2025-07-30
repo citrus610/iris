@@ -720,7 +720,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         data.stack[data.ply - 1].is_quiet &&
         data.stack[data.ply - 1].move != move::NONE) {
         // Gets bonus
-        const i16 bonus = history::get_bonus(depth);
+        const i16 bonus = history::get_bonus(depth) * 2;
 
         // Updates quiet history
         data.history.quiet.update(!data.board.get_color(), data.board.get_threats_previous(), data.stack[data.ply - 1].move, bonus);
