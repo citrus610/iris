@@ -369,7 +369,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     // Pruning
     if (!is_pv && !is_singular) {
         // Hindsight adjustment
-        if (data.stack[data.ply - 1].reduction >= tune::HINT_ADJ_MARGIN &&
+        if (data.stack[data.ply - 1].reduction >= tune::HINT_ADJ_DEPTH &&
             data.stack[data.ply - 1].eval != eval::score::NONE &&
             data.stack[data.ply - 1].eval + eval_static < 0) {
             depth += 1;
@@ -401,10 +401,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             this->table.prefetch(data.board.get_hash_after(move::NONE));
 
             // Calculates reduction count based on depth and eval
-            i32 reduction =
-                tune::NMP_REDUCTION +
-                depth / tune::NMP_DIVISOR_DEPTH +
-                std::min((eval - beta) / tune::NMP_DIVISOR_EVAL, i32(tune::NMP_REDUCTION_EVAL_MAX));
+            i32 reduction = tune::NMP_RED + depth / tune::NMP_DIV_DEPTH + std::min((eval - beta) / tune::NMP_DIV_EVAL, i32(tune::NMP_RED_EVAL_MAX));
             
             // Makes null move
             data.make_null();
