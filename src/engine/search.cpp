@@ -463,9 +463,6 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         // Checks for quiet
         const bool is_quiet = data.board.is_quiet(move);
 
-        // Sets stack quiet flag
-        data.stack[data.ply].is_quiet = is_quiet;
-
         // Gets history score
         const i32 history =
             is_quiet ?
