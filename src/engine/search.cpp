@@ -588,6 +588,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             reduction -= move == data.stack[data.ply - 1].killer;
             reduction += !is_improving;
             reduction += is_cut;
+            reduction += data.ply >= 2 && data.stack[data.ply - 2].move == move::NONE;
 
             // Clamps depth to avoid qsearch
             i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
