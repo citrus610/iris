@@ -85,8 +85,6 @@ VALUE(CORR_WEIGHT_MAJOR, 32, 16, 128, 8, true)
 
 VALUE(HINT_ADJ_DEPTH, 3, 1, 5, 1, false)
 
-VALUE(PCMH_DEPTH, 4, 1, 5, 1, false)
-
 inline i32 LMR_TABLE[MAX_PLY][move::MAX];
 
 void init();
