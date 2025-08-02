@@ -375,6 +375,14 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             depth += 1;
         }
 
+        // Hindsight reduction
+        if (depth >= 2 &&
+            data.stack[data.ply - 1].reduction >= 1 &&
+            data.stack[data.ply - 1].eval != eval::score::NONE &&
+            data.stack[data.ply - 1].eval + eval_static > 150) {
+            depth -= 1;
+        }
+
         // Razoring
         if (alpha < 2000 && eval + tune::RAZOR_COEF * depth < alpha) {
             // Scouts with qsearch
