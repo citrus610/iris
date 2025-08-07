@@ -560,6 +560,9 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             else if (table_score >= beta) {
                 extension = -1;
             }
+            else if (is_cut) {
+                extension = -1;
+            }
         }
         else {
             extension = is_in_check;
