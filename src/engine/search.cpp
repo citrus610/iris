@@ -366,6 +366,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         is_improving = data.stack[data.ply].eval > data.stack[data.ply - 2].eval;
     }
 
+    // Static eval quiet history
+    if (!is_root &&
+        data.stack[data.ply - 1].move != move::NONE &&
+        data.stack[data.ply - 1].eval != eval::score::NONE &&
+        data.stack[data.ply - 1].is_quiet) {
+        // Gets bonus based on static eval
+        const i32 delta = -(eval_static + data.stack[data.ply - 1].eval) + tune::SEQH_OFFSET;
+        const i32 bonus = std::clamp(delta * tune::SEQH_COEF / 32, -tune::SEQH_MAX, tune::SEQH_MAX);
+
+        // Updates quiet history
+        data.history.quiet.update(!data.board.get_color(), data.board.get_threats_previous(), data.stack[data.ply - 1].move, bonus);
+    }
+
     // Pruning
     if (!is_pv && !is_singular) {
         // Hindsight adjustment
@@ -462,6 +475,8 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
         // Checks for quiet
         const bool is_quiet = data.board.is_quiet(move);
+
+        data.stack[data.ply].is_quiet = is_quiet;
 
         // Gets history score
         const i32 history =

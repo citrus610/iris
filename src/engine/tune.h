@@ -85,6 +85,10 @@ VALUE(CORR_WEIGHT_MAJOR, 32, 16, 128, 8, false)
 
 VALUE(HINT_ADJ_DEPTH, 3, 1, 5, 1, false)
 
+VALUE(SEQH_OFFSET, 8, 4, 32, 4, false)
+VALUE(SEQH_COEF, 180, 4, 512, 4, false)
+VALUE(SEQH_MAX, 64, 4, 512, 4, false)
+
 inline i32 LMR_TABLE[MAX_PLY][move::MAX];
 
 void init();

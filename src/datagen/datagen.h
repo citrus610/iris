@@ -108,8 +108,8 @@ inline void run(u64 thread_count)
                     }
 
                     std::string wdl_str =
-                        game_result.wdl > 0.9f ? "1.0" :
-                        game_result.wdl < 0.1f ? "0.0" :
+                        game_result.wdl == game::Wdl::WIN ? "1.0" :
+                        game_result.wdl == game::Wdl::LOSS ? "0.0" :
                         "0.5";
 
                     lines.push_back(p.fen + " | " + std::to_string(p.score) + " | " + wdl_str);
@@ -120,10 +120,10 @@ inline void run(u64 thread_count)
                 // Updates stats
                 positions += game_result.positions.size();
 
-                if (game_result.wdl > 0.9f) {
+                if (game_result.wdl == game::Wdl::WIN) {
                     win += 1;
                 }
-                else if (game_result.wdl < 0.1f) {
+                else if (game_result.wdl == game::Wdl::LOSS) {
                     loss += 1;
                 }
                 else {
