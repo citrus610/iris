@@ -8,6 +8,13 @@ namespace datagen::game
 constexpr i32 MAX_DEPTH = 8;
 constexpr i32 MAX_SCORE = 2000;
 
+enum class Wdl
+{
+    DRAW,
+    WIN,
+    LOSS
+};
+
 struct SearchResult
 {
     i32 score = -eval::score::INFINITE;
@@ -23,7 +30,7 @@ struct Position
 struct Result
 {
     std::vector<Position> positions;
-    f32 wdl;
+    Wdl wdl;
 };
 
 inline SearchResult search(search::Engine& engine, const Board& board)
@@ -57,22 +64,23 @@ inline Result run(Board& board)
     auto result = Result();
 
     // Inits engines
-    auto engine = search::Engine();
+    search::Engine engines[2] = { search::Engine(), search::Engine() };
 
-    engine.set({ .hash = 8, .threads = 1 });
+    engines[0].set({ .hash = 8, .threads = 1 });
+    engines[1].set({ .hash = 8, .threads = 1 });
 
     // Plays
     while (true)
     {
         // Search
-        auto search_result = search(engine, board);
+        auto search_result = search(engines[board.get_color()], board);
 
         // Updates score to white relative
         search_result.score = board.get_color() == color::WHITE ? search_result.score : -search_result.score;
 
         // If the score is high enough, stop
         if (std::abs(search_result.score) >= MAX_SCORE) {
-            result.wdl = search_result.score > 0 ? 1.0f : 0.0f;
+            result.wdl = search_result.score > 0 ? Wdl::WIN : Wdl::LOSS;
             break;
         }
 
@@ -89,7 +97,7 @@ inline Result run(Board& board)
 
         // Checks draw
         if (board.is_draw() || move::gen::get_legal(board).size() == 0) {
-            result.wdl = 0.5f;
+            result.wdl = Wdl::DRAW;
             break;
         }
     }
