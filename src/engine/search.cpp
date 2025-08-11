@@ -728,6 +728,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         best >= beta ? transposition::bound::LOWER :
         best > alpha_old ? transposition::bound::EXACT :
         transposition::bound::UPPER;
+    
+    // Prior counter move history
+    if (!is_root &&
+        bound == transposition::bound::UPPER &&
+        (quiets.size() > 0 || depth > 3) &&
+        data.stack[data.ply - 1].move != move::NONE &&
+        data.stack[data.ply - 1].is_quiet) {
+        // Bonus
+        const i16 bonus = history::get_bonus(depth);
+
+        // Updates history
+        data.history.quiet.update(!data.board.get_color(), data.board.get_threats_previous(), data.stack[data.ply - 1].move, bonus);
+    }
 
     // Updates correction history
     if ((best_move == move::NONE || data.board.is_quiet(best_move)) &&
