@@ -351,7 +351,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             move::NONE,
             eval::score::NONE,
             eval_raw,
-            depth,
+            0,
             this->table.age,
             table_pv,
             transposition::bound::NONE,
