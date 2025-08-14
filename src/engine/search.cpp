@@ -658,11 +658,13 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         // Updates best
         if (score > best) {
             best = score;
-            best_move = move;
     
             // Updates alpha
             if (score > alpha) {
                 alpha = score;
+
+                // Updates best move
+                best_move = move;
     
                 // Updates pv line
                 data.stack[data.ply].pv.update(move, data.stack[data.ply + 1].pv);
