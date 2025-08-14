@@ -956,11 +956,13 @@ i32 Engine::qsearch(Data& data, i32 alpha, i32 beta)
         // Updates best
         if (score > best) {
             best = score;
-            best_move = move;
 
             // Updates alpha
             if (score > alpha) {
                 alpha = score;
+
+                // Updates best move
+                best_move = move;
     
                 // Updates pv line
                 data.stack[data.ply].pv.update(move, data.stack[data.ply + 1].pv);
