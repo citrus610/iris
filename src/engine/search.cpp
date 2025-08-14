@@ -433,7 +433,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     }
 
     // Internal iterative reduction
-    if (depth >= tune::IIR_DEPTH && !table_move && is_pv) {
+    if (depth >= tune::IIR_DEPTH + is_cut * tune::IIR_COEF_CUT && !table_move && (is_pv || is_cut)) {
         depth -= 1;
     }
 
