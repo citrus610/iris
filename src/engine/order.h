@@ -28,9 +28,10 @@ private:
     Stage stage;
     usize index;
     usize index_bad;
+    std::optional<i32> threshold;
     bool skip;
 public:
-    Picker(Data& data, u16 hasher, bool skip = false);
+    Picker(Data& data, u16 hasher, bool skip = false, std::optional<i32> threshold = {});
 public:
     u16 get(Data& data);
     Stage get_stage();

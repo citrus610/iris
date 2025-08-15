@@ -3,7 +3,7 @@
 namespace order
 {
 
-Picker::Picker(Data& data, u16 hasher, bool skip)
+Picker::Picker(Data& data, u16 hasher, bool skip, std::optional<i32> threshold)
 {
     this->moves.clear();
     this->baddies.clear();
@@ -12,6 +12,7 @@ Picker::Picker(Data& data, u16 hasher, bool skip)
     this->stage = hasher != move::NONE ? Stage::HASHER : Stage::NOISY_GEN;
     this->index = 0;
     this->index_bad = 0;
+    this->threshold = threshold;
     this->skip = skip;
 };
 
@@ -50,7 +51,7 @@ u16 Picker::get(Data& data)
             }
 
             // Adds moves that fail to pass SEE to the baddies list :D
-            if (!see::is_ok(data.board, best, -score / 32)) {
+            if (!see::is_ok(data.board, best, threshold.value_or(-score / 32))) {
                 this->baddies.add(best);
                 continue;
             }
