@@ -438,20 +438,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
     }
 
     // Probabilistic cutoff
-    if (!is_pv) {
+    if (!is_pv && !is_singular) {
         const i32 probcut_beta = beta + 200;
 
         if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
             const i32 probcut_depth = depth - 4;
-            const i32 probcut_margin = probcut_beta - eval_static;
 
             u16 hasher = move::NONE;
 
-            if (data.board.is_pseudo_legal(table_move) && !data.board.is_quiet(table_move) && see::is_ok(data.board, table_move, probcut_margin)) {
+            if (table_move && !data.board.is_quiet(table_move)) {
                 hasher = table_move;
             }
 
-            auto picker = order::Picker(data, hasher, true, probcut_margin);
+            auto picker = order::Picker(data, hasher, true, 0);
 
             while (true) {
                 const u16 move = picker.get(data);
@@ -460,7 +459,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                     break;
                 }
 
-                if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
+                if (!data.board.is_legal(move)) {
                     continue;
                 }
 
