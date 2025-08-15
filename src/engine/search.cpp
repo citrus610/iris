@@ -430,8 +430,15 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 return score < eval::score::MATE_FOUND ? score : beta;
             }
         }
+    }
 
-        // Probabilistic cutoff
+    // Internal iterative reduction
+    if (depth >= tune::IIR_DEPTH + is_cut * tune::IIR_COEF_CUT && !table_move && (is_pv || is_cut)) {
+        depth -= 1;
+    }
+
+    // Probabilistic cutoff
+    if (!is_pv) {
         const i32 probcut_beta = beta + 200;
 
         if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
@@ -453,7 +460,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                     break;
                 }
 
-                if (!data.board.is_legal(move)) {
+                if (move == data.stack[data.ply].excluded || !data.board.is_legal(move)) {
                     continue;
                 }
 
@@ -490,11 +497,6 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 }
             }
         }
-    }
-
-    // Internal iterative reduction
-    if (depth >= tune::IIR_DEPTH + is_cut * tune::IIR_COEF_CUT && !table_move && (is_pv || is_cut)) {
-        depth -= 1;
     }
 
     // Move loop
