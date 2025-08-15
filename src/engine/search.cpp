@@ -439,18 +439,19 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
     // Probabilistic cutoff
     if (!is_pv && !is_singular) {
-        const i32 probcut_beta = beta + 200;
+        const i32 probcut_beta = beta + 300;
 
         if (depth >= 5 && std::abs(beta) < eval::score::MATE_FOUND && (!table_hit || table_score >= probcut_beta || table_depth + 3 < depth)) {
             const i32 probcut_depth = depth - 4;
+            const i32 probcut_margin = probcut_beta - eval_static;
 
             u16 hasher = move::NONE;
 
-            if (table_move && !data.board.is_quiet(table_move)) {
+            if (table_move && !data.board.is_quiet(table_move) && see::is_ok(data.board, table_move, probcut_margin)) {
                 hasher = table_move;
             }
 
-            auto picker = order::Picker(data, hasher, true, 0);
+            auto picker = order::Picker(data, hasher, true, probcut_margin);
 
             while (true) {
                 const u16 move = picker.get(data);
