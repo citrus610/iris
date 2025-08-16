@@ -37,7 +37,9 @@ VALUE(AW_DELTA, 12, 10, 50, 5, false)
 VALUE(RAZOR_COEF, 292, 100, 500, 10, false)
 
 VALUE(RFP_DEPTH, 8, 6, 12, 1, false)
+VALUE(RFP_BASE, 25, 20, 100, 10, false)
 VALUE(RFP_COEF, 69, 20, 100, 10, false)
+VALUE(RFP_COEF_IMP, 64, 20, 100, 10, false)
 
 VALUE(NMP_DEPTH, 3, 3, 8, 1, false)
 VALUE(NMP_RED, 4, 2, 5, 1, false)
