@@ -399,9 +399,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         }
 
         // Reverse futility pruning
+        const i32 rfp_margin = depth * tune::RFP_COEF - is_improving * tune::RFP_COEF_IMP + tune::RFP_BASE;
+
         if (depth <= tune::RFP_DEPTH &&
             eval < eval::score::MATE_FOUND &&
-            eval >= beta + std::max(depth - is_improving, 1) * tune::RFP_COEF) {
+            eval >= beta + rfp_margin) {
             return eval;
         }
 
@@ -730,7 +732,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         best >= beta ? transposition::bound::LOWER :
         best > alpha_old ? transposition::bound::EXACT :
         transposition::bound::UPPER;
-    
+
     // Prior counter move history
     if (!is_root &&
         bound == transposition::bound::UPPER &&
