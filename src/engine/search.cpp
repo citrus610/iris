@@ -399,7 +399,11 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         }
 
         // Reverse futility pruning
-        const i32 rfp_margin = depth * tune::RFP_COEF - is_improving * tune::RFP_COEF_IMP + tune::RFP_BASE;
+        const i32 rfp_margin =
+            tune::RFP_COEF * depth -
+            tune::RFP_COEF_IMP * is_improving -
+            tune::RFP_COEF_CUT * is_cut +
+            tune::RFP_BASE;
 
         if (depth <= tune::RFP_DEPTH &&
             eval < eval::score::MATE_FOUND &&
