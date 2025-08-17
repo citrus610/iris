@@ -328,35 +328,33 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         eval_raw = data.stack[data.ply].eval;
         eval_static = data.stack[data.ply].eval;
     }
-    else if (table_hit) {
+    else {
         eval_raw = table_eval != eval::score::NONE ? table_eval : eval::get(data.board, data.nnue);
         eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
         eval = eval_static;
 
-        // Uses the node's score as a more accurate eval value
-        if ((table_bound == transposition::bound::EXACT) ||
-            (table_bound == transposition::bound::LOWER && table_score >= eval) ||
-            (table_bound == transposition::bound::UPPER && table_score <= eval)) {
-            eval = table_score;
+        if (table_hit) {
+            // Uses the node's score as a more accurate eval value
+            if ((table_bound == transposition::bound::EXACT) ||
+                (table_bound == transposition::bound::LOWER && table_score >= eval) ||
+                (table_bound == transposition::bound::UPPER && table_score <= eval)) {
+                eval = table_score;
+            }
         }
-    }
-    else {
-        eval_raw = eval::get(data.board, data.nnue);
-        eval_static = eval::get_adjusted(eval_raw, data.history.get_correction(data.board), data.board.get_halfmove_count());
-        eval = eval_static;
-
-        // Stores this eval into the table
-        table_entry->set(
-            data.board.get_hash(),
-            move::NONE,
-            eval::score::NONE,
-            eval_raw,
-            0,
-            this->table.age,
-            table_pv,
-            transposition::bound::NONE,
-            data.ply
-        );
+        else {
+            // Stores this eval into the table
+            table_entry->set(
+                data.board.get_hash(),
+                move::NONE,
+                eval::score::NONE,
+                eval_raw,
+                0,
+                this->table.age,
+                table_pv,
+                transposition::bound::NONE,
+                data.ply
+            );
+        }
     }
 
     data.stack[data.ply].eval = eval_static;
@@ -399,7 +397,10 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         }
 
         // Reverse futility pruning
-        const i32 rfp_margin = depth * tune::RFP_COEF - is_improving * tune::RFP_COEF_IMP + tune::RFP_BASE;
+        const i32 rfp_margin =
+            tune::RFP_COEF * depth -
+            tune::RFP_COEF_IMP * is_improving +
+            tune::RFP_BASE;
 
         if (depth <= tune::RFP_DEPTH &&
             eval < eval::score::MATE_FOUND &&
