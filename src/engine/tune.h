@@ -33,6 +33,7 @@ inline std::vector<Value*> values;
 
 VALUE(AW_DEPTH, 4, 3, 6, 1, false)
 VALUE(AW_DELTA, 12, 10, 50, 5, false)
+VALUE(AW_GROWTH, 42, 10, 50, 5, false)
 
 VALUE(RAZOR_COEF, 292, 100, 500, 10, false)
 

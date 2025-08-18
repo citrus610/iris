@@ -209,7 +209,7 @@ i32 Engine::aspiration_window(Data& data, i32 depth, i32 score_old)
         }
 
         // Increase delta
-        delta = delta + delta / 2;
+        delta += delta * tune::AW_GROWTH / 128;
     }
 
     return score;
