@@ -123,6 +123,24 @@ void Table::update(const i8 color, const u64& hash, i16 bonus)
 
 };
 
+namespace history::pawn
+{
+
+i16& Table::get(Board& board, const u16& move)
+{
+    const i8 to = move::get_to(move);
+    const i8 piece = board.get_piece_at(move::get_from(move));
+
+    return this->data[board.get_hash_pawn() & MASK][piece][to];
+};
+
+void Table::update(Board& board, const u16& move, i16 bonus)
+{
+    history::update<history::pawn::MAX>(this->get(board, move), bonus);
+};
+
+};
+
 namespace history
 {
 

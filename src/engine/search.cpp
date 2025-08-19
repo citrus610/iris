@@ -686,10 +686,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
 
                 // Quiet history
                 data.history.quiet.update(data.board.get_color(), data.board.get_threats(), move, bonus);
+                data.history.pawn.update(data.board, move, bonus);
                 data.history.cont.update(data, move, bonus);
 
                 for (const u16& visited : quiets) {
                     data.history.quiet.update(data.board.get_color(), data.board.get_threats(), visited, -malus);
+                    data.history.pawn.update(data.board, visited, -malus);
                     data.history.cont.update(data, visited, -malus);
                 }
             }

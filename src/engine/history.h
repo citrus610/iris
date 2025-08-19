@@ -113,6 +113,25 @@ public:
 
 };
 
+namespace history::pawn
+{
+
+constexpr i32 MAX = 16384;
+
+constexpr usize SIZE = 1ULL << 10;
+constexpr usize MASK = SIZE - 1;
+
+class Table
+{
+private:
+    i16 data[SIZE][12][64] = { 0 };
+public:
+    i16& get(Board& board, const u16& move);
+    void update(Board& board, const u16& move, i16 bonus);
+};
+
+};
+
 namespace history
 {
 
@@ -122,6 +141,7 @@ public:
     history::quiet::Table quiet = {};
     history::noisy::Table noisy = {};
     history::cont::Table cont = {};
+    history::pawn::Table pawn = {};
     history::corr::Table corr_pawn = {};
     history::corr::Table corr_non_pawn[2] = {};
     history::corr::Table corr_minor = {};
