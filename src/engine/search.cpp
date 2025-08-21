@@ -482,10 +482,16 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         data.stack[data.ply].is_quiet = is_quiet;
 
         // Gets history score
-        const i32 history =
-            is_quiet ?
-            data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
-            data.history.noisy.get(data.board, move);
+        i32 history = 0;
+
+        if (is_quiet) {
+            history += data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move);
+            history += data.history.cont.get(data, move, 1);
+            history += data.history.cont.get(data, move, 2);
+        }
+        else {
+            history += data.history.noisy.get(data.board, move);
+        }
 
         // Gets reduction
         i32 reduction = tune::LMR_TABLE[depth][legals];
@@ -632,6 +638,16 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 // Searches again
                 if (depth_reduced < depth_next) {
                     score = -this->pvsearch<node::Type::NORMAL>(data, -alpha - 1, -alpha, depth_next, !is_cut);
+                }
+
+                // Updates continuation history
+                if (is_quiet) {
+                    const i16 bonus =
+                        score >= beta ? history::get_bonus(depth) :
+                        score <= alpha ? -history::get_malus(depth) :
+                        0;
+
+                    data.history.cont.update(data, move, bonus);
                 }
             }
         }
