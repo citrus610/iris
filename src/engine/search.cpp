@@ -482,10 +482,16 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
         data.stack[data.ply].is_quiet = is_quiet;
 
         // Gets history score
-        const i32 history =
-            is_quiet ?
-            data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move) + data.history.cont.get(data, move, 1) + data.history.cont.get(data, move, 2) :
-            data.history.noisy.get(data.board, move);
+        i32 history = 0;
+
+        if (is_quiet) {
+            history += data.history.quiet.get(data.board.get_color(), data.board.get_threats(), move);
+            history += data.history.cont.get(data, move, 1);
+            history += data.history.cont.get(data, move, 2);
+        }
+        else {
+            history += data.history.noisy.get(data.board, move);
+        }
 
         // Gets reduction
         i32 reduction = tune::LMR_TABLE[depth][legals];
