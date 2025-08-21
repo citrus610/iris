@@ -152,6 +152,7 @@ void Picker::score_quiet(Data& data)
     for (usize i = 0; i < this->moves.size(); ++i) {
         this->scores[i] =
             data.history.quiet.get(data.board.get_color(), data.board.get_threats(), this->moves[i]) +
+            data.history.pawn.get(data.board, this->moves[i]) +
             data.history.cont.get(data, this->moves[i], 1) +
             data.history.cont.get(data, this->moves[i], 2) +
             data.history.cont.get(data, this->moves[i], 4);
