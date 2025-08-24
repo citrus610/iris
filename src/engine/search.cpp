@@ -517,12 +517,12 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
                 is_quiet &&
                 depth_reduced <= tune::FP_DEPTH &&
                 futility <= alpha) {
+                // Updates best score
                 if (std::abs(best) < eval::score::MATE_FOUND && best < futility) {
                     best = futility;
                 }
                     
                 picker.skip_quiets();
-
                 continue;
             }
 
@@ -618,7 +618,7 @@ i32 Engine::pvsearch(Data& data, i32 alpha, i32 beta, i32 depth, bool is_cut)
             reduction += data.ply >= 2 && data.stack[data.ply - 2].move == move::NONE;
 
             // Clamps depth to avoid qsearch
-            i32 depth_reduced = std::min(std::max(depth_next - reduction, 1), depth_next);
+            i32 depth_reduced = std::clamp(depth_next - reduction, 1, depth_next) + is_pv;
 
             // Sets stack reduction
             data.stack[data.ply].reduction = reduction;
