@@ -8,7 +8,9 @@ namespace see
 inline bool is_ok(Board& board, const u16& move, i32 threshold)
 {
     // Skips special moves
-    if (move::get_type(move) != move::type::NORMAL) {
+    auto move_type = move::get_type(move);
+
+    if (move_type == move::type::PROMOTION || move_type == move::type::CASTLING) {
         return true;
     }
 
@@ -17,7 +19,7 @@ inline bool is_ok(Board& board, const u16& move, i32 threshold)
     auto to = move::get_to(move);
 
     auto piece = board.get_type_at(from);
-    auto captured = board.get_type_at(to);
+    auto captured = move_type == move::type::ENPASSANT ? piece::type::PAWN : board.get_type_at(to);
 
     // Piece balance
     i32 value = (captured == piece::type::NONE ? 0 : eval::PIECE_VALUE[captured]) - threshold;
@@ -36,6 +38,10 @@ inline bool is_ok(Board& board, const u16& move, i32 threshold)
 
     // Occupied pieces
     u64 occupied = board.get_occupied() ^ bitboard::create(from);
+
+    if (move_type == move::type::ENPASSANT) {
+        occupied ^= bitboard::create(to ^ 8);
+    }
 
     // Gets attackers
     u64 attackers = board.get_attackers(to, occupied);

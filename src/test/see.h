@@ -74,6 +74,24 @@ inline std::vector<Test> set = {
         .move = move::get<move::type::NORMAL>(square::D5, square::B7),
         .threshold = 0,
         .result = true
+    },
+    Test {
+        .fen = "6b1/k7/8/3Pp3/2K2N1r/8/8/8 w - e6 0 1",
+        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
+        .threshold = 0,
+        .result = true
+    },
+    Test {
+        .fen = "6b1/k7/8/3Pp3/2K2N1r/8/8/8 w - e6 0 1",
+        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
+        .threshold = 1,
+        .result = false
+    },
+    Test {
+        .fen = "6b1/k7/8/3Pp3/2K2N2/8/8/8 w - e6 0 1",
+        .move = move::get<move::type::ENPASSANT>(square::D5, square::E6),
+        .threshold = eval::PIECE_VALUE[piece::type::PAWN],
+        .result = true
     }
 };
 
