@@ -163,9 +163,11 @@ void Picker::score_noisy(Data& data)
 {
     for (usize i = 0; i < this->moves.size(); ++i) {
         const auto captured = data.board.get_captured_type(this->moves[i]);
+        const auto promotion_bonus = move::get_type(this->moves[i]) == move::type::PROMOTION ? eval::PIECE_VALUE[move::get_promotion_type(this->moves[i])] : 0;
 
         this->scores[i] =
             eval::PIECE_VALUE[captured] * 16 +
+            promotion_bonus +
             data.history.noisy.get(data.board, this->moves[i], captured);
     }
 };
