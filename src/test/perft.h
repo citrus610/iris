@@ -89,7 +89,7 @@ inline void test()
         std::cout << " - depth: " << test.depth << std::endl;
         std::cout << " - count: " << count << std::endl;
         std::cout << " - time: " << time << " ms" << std::endl;
-        std::cout << " - nps: " << (count / time) << " kn/s" << std::endl;
+        std::cout << " - nps: " << (count / std::max(time, i64(1))) << " kn/s" << std::endl;
         
         if (count == test.count) {
             std::cout << "passed!" << std::endl;
